@@ -16,10 +16,9 @@ function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-
-(async () => {
+async function main() {
     const browser = await puppeteer.launch({
-        headless: 'new',
+        headless: false,
         args: [
              `--disable-extensions-except=${phantom_extension_path}`,
             `--load-extension=${phantom_extension_path}`,
@@ -250,7 +249,7 @@ function delay(ms) {
             for (let i = 0; i < 3; i++) {
                 await expirationhours.press('Backspace');
             }
-            await expirationhours.type("3");
+            await expirationhours.type("1");
             await delay(2000);
             const orderbutton=await newTab.waitForSelector("::-p-xpath(//div[@data-tab-id='dip']//button[contains(@class,'js-show__buy-order__submit')][1])", { timeout: 20000 });
             await orderbutton.click();
@@ -434,7 +433,7 @@ function delay(ms) {
             for (let i = 0; i < 3; i++) {
                 await takeprofitexpirationhours.press('Backspace');
             }
-            await takeprofitexpirationhours.type("3");
+            await takeprofitexpirationhours.type("1");
             await delay(2000);
             const takeprofitorderbutton=await newTab1.waitForSelector("::-p-xpath((//button[contains(@class,'u-mt-s u-w-100 c-btn c-w-form__submit c-btn--purple js-show__sell-order__submit')])[1])", { timeout: 20000 });
             await takeprofitorderbutton.click();
@@ -533,7 +532,7 @@ function delay(ms) {
             for (let i = 0; i < 3; i++) {
                 await stoplossexpirationhours.press('Backspace');
             }
-            await stoplossexpirationhours.type("3");
+            await stoplossexpirationhours.type("1");
             await delay(2000);
             const stoplossorderbutton=await newTab2.waitForSelector("::-p-xpath((//button[contains(@class,'u-mt-s u-w-100 c-btn c-w-form__submit c-btn--purple js-show__sell-order__submit')])[1])", { timeout: 20000 });
             await stoplossorderbutton.click();
@@ -597,4 +596,7 @@ function delay(ms) {
     console.log('All orders completed.'); 
     console.log('Automation complete.');
     
-})();
+};
+
+main();
+
