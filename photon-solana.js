@@ -17,8 +17,14 @@ function delay(ms) {
 }
 
 async function main() {
+    // Delete the cancelled-orders.json file if it exists
+    if (fs.existsSync('cancelled-orders.json')) {
+        fs.unlinkSync('cancelled-orders.json');
+        console.log('Deleted "cancelled-orders.json" file.');
+    }
     const browser = await puppeteer.launch({
         headless: false,
+        defaultViewport: null,
         args: [
              `--disable-extensions-except=${phantom_extension_path}`,
             `--load-extension=${phantom_extension_path}`,
@@ -149,23 +155,61 @@ async function main() {
     console.log('current url:', mainPage.url());
     const orderButton = await mainPage.waitForSelector("::-p-xpath(//a[.='Orders'])", { timeout: 20000 });
     await orderButton.click();
+    await delay(6000);
    
-    await delay(6000);
-    await mainPage.evaluate(() => window.scrollBy(0, 1000));
-    await delay(2000);
-    await mainPage.evaluate(() => {
-        const scrollContainer = document.querySelector('.u-overflow-x-auto.c-grid-table-scroll.c-grid-table-scroll--my-holdings.c-grid-table-scroll--sm');
-        if (scrollContainer) {
-            scrollContainer.scrollBy(1000, 0); 
-            console.log('Scrolled the horizontal container to the right.');
+    let isEndOfPage = false;
+    let previousHeight = 0; 
+    let retryCount = 0;     
+    const maxRetries = 5;   
+    
+    while (!isEndOfPage) { 
+        
+        await mainPage.evaluate(() => window.scrollBy(0, 1000));
+        await delay(2000);
+    
+        await mainPage.evaluate(() => {
+            const scrollContainer = document.querySelector('.u-overflow-x-auto.c-grid-table-scroll.c-grid-table-scroll--my-holdings.c-grid-table-scroll--sm');
+            if (scrollContainer) {
+                scrollContainer.scrollBy(200, 0);
+                console.log('Scrolled the horizontal container to the right.');
+                setTimeout(() => {
+                    scrollContainer.scrollBy(-200, 0);
+                    console.log('Scrolled the horizontal container to the left.');
+                }, 1000);
+            } else {
+                console.error('Horizontal scroll container not found.');
+            }
+        });
+        await delay(2000);
+    
+        console.log('Scrolling meow');
+    
+        const currentHeight = await mainPage.evaluate('document.body.scrollHeight');
+        if (currentHeight === previousHeight) {
+            retryCount++;
+            console.log(`No new content detected. Retry ${retryCount}/${maxRetries}`);
+            if (retryCount >= maxRetries) {
+                isEndOfPage = true; 
+            }
         } else {
-            console.error('Horizontal scroll container not found.');
+            retryCount = 0; 
+            previousHeight = currentHeight;
         }
-    });
-    await delay(2000);
-    console.log('Horizontal scroll complete.');
-    console.log('Scrolled down and moved the horizontal scroll bar to the right.');
-    await delay(6000);
+        isEndOfPage = isEndOfPage || await mainPage.evaluate(() => {
+            return window.innerHeight + window.scrollY >= document.body.scrollHeight;
+        });
+    
+        if (isEndOfPage) {
+            console.log('Scrolled to the end of the page.');
+    
+            orderscount = await mainPage.$$eval("::-p-xpath(//div[@class='c-grid-table__tr c-trades-table__tr c-trades-table__tr--buy'])", rows => rows.length);
+            console.log('Total Orders:', orderscount);
+        }
+    }
+    await delay(3000);
+
+    // first find duplicate orders such that token link and token condition should be same and the duplicate should be the one that has span with text canceled first locate tr with matching token link and token condition then check if there are more than one span with text and for the one with canceled text click on the trash icon
+   
 
     const cancelOrders = await mainPage.$$eval(
         "::-p-xpath(//span[.='canceled']/ancestor::div[contains(@class,'c-grid-table__tr ')])",
@@ -216,12 +260,86 @@ async function main() {
             });
         }
     );
+    console.log('Cancel Orders length before removing duplicates', cancelOrders.length);
+    const activeOrders = await mainPage.$$eval(
+        "::-p-xpath(//span[.='active']/ancestor::div[contains(@class,'c-grid-table__tr ')])",
+        (rows) => {
+    
+            const getXPathElementText = (context, xpath) => {
+                const element = document.evaluate(xpath, context, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                return element ? element.textContent.trim() : "N/A";
+            };
+    
+            const getXPathElementAttribute = (context, xpath) => {
+                const element = document.evaluate(xpath, context, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                return element ? element.nodeValue.trim() : "N/A";
+            };
+    
+            const baseUrl = "https://photon-sol.tinyastro.io";
+            
+            return rows.map((row, index) => {
+                const relativeLink = getXPathElementAttribute(row, ".//div[3]//a/@href");
+                const tokenLink = relativeLink !== "N/A" ? new URL(relativeLink, baseUrl).href : "N/A";
+                const tokenAmount = getXPathElementText(row, ".//div[4]");
+                const tokenCondition = getXPathElementText(row, ".//div[5]//span");
+                return {
+                    id: `order-${index + 1}`,
+                    tokenLink,
+                    tokenAmount,
+                    tokenCondition,
+                };
+            });
+        }
+    );
+    
+    const matchingOrders = cancelOrders.filter(order => 
+        activeOrders.some(activeOrder => 
+          activeOrder.tokenLink === order.tokenLink &&
+          (
+            (activeOrder.tokenCondition.includes("Buy dip") && order.tokenCondition.includes("Buy dip")) ||
+            (activeOrder.tokenCondition.includes("Take profit") && order.tokenCondition.includes("Take profit")) ||
+            (activeOrder.tokenCondition.includes("Stop loss") && order.tokenCondition.includes("Stop loss"))
+          )
+        )
+      );
+        console.log('Matching Orders length:', matchingOrders.length);
+        const filteredcancelOrders = cancelOrders.filter(order =>
+            !matchingOrders.some(matchingOrder => matchingOrder.tokenLink === order.tokenLink && matchingOrder.tokenCondition === order.tokenCondition)
+        );
+        console.log('Cancel Orders length after removing duplicates', filteredcancelOrders.length);
+    await delay(8000);
+    if(matchingOrders.length > 0){
+        console.log('Duplicate orders found.');
+        for(const matchingOrder of matchingOrders){
+            const compareLink = matchingOrder.tokenLink.replace('https://photon-sol.tinyastro.io', '');
+            const compareCondition = matchingOrder.tokenCondition;
+            const orderRowXPath = `//span[.='canceled']/ancestor::div[contains(@class,'c-grid-table__tr ') and .//div[3]//a[@href='${compareLink}'] and .//div[5]//span[normalize-space(text())='${compareCondition}']]`;
+            const orderRow = await mainPage.$(`::-p-xpath(${orderRowXPath})`);
+    
+            if (!orderRow) {
+                console.error(`Order row for ${matchingOrder.tokenLink} and ${matchingOrder.tokenCondition} not found.`);
+            } else {
+                const deleteButtonXPath = ".//span[@class='c-icon c-icon--trash c-task-table__icon']/ancestor::div[@class='c-grid-table__td c-trades-table__td']";
+                const deleteButton = await orderRow.$(`::-p-xpath(${deleteButtonXPath})`);
+    
+                if (deleteButton) {
+                    await deleteButton.click();
+                    await delay(2000);
+                    console.log(`Delete button clicked for Order that is already activated: ${matchingOrder.tokenLink}  ${matchingOrder.tokenCondition}`);
+                } 
+                else {
+                    console.error(`Delete button not found for Order that is already activated: ${matchingOrder.tokenLink}  ${matchingOrder.tokenCondition}`);
+                }
+            }
+        }
+    }
     
     
-    fs.writeFileSync('cancelled-orders.json', JSON.stringify(cancelOrders, null, 2));
+    
+    fs.writeFileSync('cancelled-orders.json', JSON.stringify(filteredcancelOrders, null, 2));
     console.log('Cancelled orders saved to "cancelled-orders.json" file.');
     
-    const buyDipOrders = cancelOrders.filter(order => order.tokenCondition.includes("Buy dip"));
+    const buyDipOrders = filteredcancelOrders.filter(order => order.tokenCondition.includes("Buy dip"));
     if(buyDipOrders.length > 0){
         console.log('Buy dip orders found.');
         for(const buydiporder of buyDipOrders){
@@ -249,7 +367,7 @@ async function main() {
             for (let i = 0; i < 3; i++) {
                 await expirationhours.press('Backspace');
             }
-            await expirationhours.type("1");
+            await expirationhours.type("3");
             await delay(2000);
             const orderbutton=await newTab.waitForSelector("::-p-xpath(//div[@data-tab-id='dip']//button[contains(@class,'js-show__buy-order__submit')][1])", { timeout: 20000 });
             await orderbutton.click();
@@ -266,13 +384,19 @@ async function main() {
                     buydiporder.status = "done"; 
                 } else {
                     console.log("Order creation failed or unexpected toast message.");
+                    if (fs.existsSync('order-creation-failed.txt')) {
+                        fs.appendFileSync(
+                            'order-creation-failed.txt',
+                            `\n${buydiporder.tokenLink}, ${buydiporder.tokenCondition}, for entering this amount : ${buydiporder.tokenTargetPrice} failing to reactivate because of percentage or some other error \n`
+                        );
+                    }
                 }
             } catch (error) {
                 console.error("Toast message not found or timeout occurred:", error);
             }
             await delay(4000);
             await newTab.close();
-            fs.writeFileSync('cancelled-orders.json', JSON.stringify(cancelOrders, null, 2));
+            fs.writeFileSync('cancelled-orders.json', JSON.stringify(filteredcancelOrders, null, 2));
             console.log('Updated cancelled orders saved to "cancelled-orders.json" file.');
             if(buydiporder.status === "done"){
                 console.log(`Order ${buydiporder.id} is marked as done. Deleting the order now...`);
@@ -307,89 +431,7 @@ async function main() {
 
     }
 }
-    // firstorder=buyDipOrders[0];
-    // const newTab = await mainPage.browser().newPage();
-    // console.log(`Navigating to ${firstorder.tokenLink} for Order ID: ${firstorder.id}`);
-    // await newTab.goto(firstorder.tokenLink, { waitUntil: 'load' });
-    // await delay(3000);
-    // await newTab.waitForSelector('body');
-    // const buydipoption = await newTab.waitForSelector("::-p-xpath(//div[@class='l-col-auto'][2]//div[@class='c-checkbox__inner c-checkbox__inner--rounded'][1])", { timeout: 20000 });
-    // await buydipoption.click();
-    // await delay(2000);
-    // const buyamountinput = await newTab.waitForSelector("::-p-xpath(//div[@class='js-price-form']//input[@placeholder='Amount to buy in SOL'])", { timeout: 20000 });
-    // await buyamountinput.type(firstorder.tokenAmount.toString());
-    // const Mcdropdown = await newTab.waitForSelector("::-p-xpath(//div[@data-tab-id='dip']//div[contains(@class,'c-btn c-btn--transparent c-drop-group__select__toggle js-dropdown__toggle')][1])", { timeout: 20000 });
-    // await Mcdropdown.click();
-    // await delay(2000);
-    // const Mcoptionselector = await newTab.waitForSelector("::-p-xpath(//div[@data-tab-id='dip']//div[@data-value='MC is'])", { timeout: 20000 });
-    // await Mcoptionselector.click();
-    // await delay(2000);
-    // const mcoptioninput=await newTab.waitForSelector("::-p-xpath(//div[@data-tab-id='dip']//input[@data-type='usd'])", { timeout: 20000 });
-    // await mcoptioninput.type(firstorder.tokenTargetPrice.toString());
-    // await delay(2000);
-    // const expirationhours = await newTab.waitForSelector("::-p-xpath(//div[@data-tab-id='dip']//input[@data-kind='expiration_type'])", { timeout: 20000 });
-    // //first clear the input field
-    // await expirationhours.click();
-    // for (let i = 0; i < 3; i++) {
-    //     await expirationhours.press('Backspace');
-    // }
-    // await expirationhours.type("1");
-    // await delay(2000);
-    // const orderbutton=await newTab.waitForSelector("::-p-xpath(//div[@data-tab-id='dip']//button[contains(@class,'js-show__buy-order__submit')][1])", { timeout: 20000 });
-    // await orderbutton.click();
-    // try {
-    //     const toastmessage = await newTab.waitForSelector(
-    //         "::-p-xpath(//div[@class='iziToast-wrapper iziToast-wrapper-topCenter'])",
-    //         { timeout: 20000 }
-    //     );
-        
-    //     const toastText = await toastmessage.evaluate(el => el.textContent.trim());
-        
-    //     if (toastText.includes("Order has been successfully created")) {
-    //         console.log("Order successfully created. Updating status to 'done'.");
-    //         firstorder.status = "done"; 
-    //     } else {
-    //         console.log("Order creation failed or unexpected toast message.");
-    //     }
-    // } catch (error) {
-    //     console.error("Toast message not found or timeout occurred:", error);
-    // }
-    // await delay(4000);
-    // await newTab.close();
-
-    // fs.writeFileSync('cancelled-orders.json', JSON.stringify(cancelOrders, null, 2));
-    // console.log('Updated cancelled orders saved to "cancelled-orders.json" file.');
-    // // change the status for this order-id to "done"
-    // if (firstorder.status === "done") {
-    //     console.log(`Order ${firstorder.id} is marked as done. Deleting the order now...`);
-    //     try {
-    //         // Locate the specific row using the `tokenLink`
-    //         // first make the links https://photon-sol.tinyastro.io/en/lp/pool_redirect?id=3430673 like this to  /en/lp/pool_redirect?id=3430673 for comparison
-    //         const compareLink = firstorder.tokenLink.replace('https://photon-sol.tinyastro.io', '');
-    //         const orderRowXPath = `//span[.='canceled']/ancestor::div[contains(@class,'c-grid-table__tr ')]//div[3]//a[@href='${compareLink}']/ancestor::div[contains(@class,'c-grid-table__tr ')]`;
-    //         const orderRow = await mainPage.$(`::-p-xpath(${orderRowXPath})`);
-    
-    //         if (!orderRow) {
-    //             console.error(`Order row for ${firstorder.id} not found.`);
-    //         } else {
-    //             const deleteButtonXPath = ".//span[@class='c-icon c-icon--trash c-task-table__icon']/ancestor::div[@class='c-grid-table__td c-trades-table__td']";
-    //             const deleteButton = await orderRow.$(`::-p-xpath(${deleteButtonXPath})`);
-    
-    //             if (deleteButton) {
-    //                 await deleteButton.click();
-    //                 console.log(`Delete button clicked for Order ID: ${firstorder.id}`);
-    //             } 
-    //             else {
-    //                 console.error(`Delete button not found for Order ID: ${firstorder.id}.`);
-    //             }
-    //         }
-    //     }
-    //     catch (error) {
-    //             console.error(`Error deleting order ${firstorder.id}:`, error);
-    //         }
-    //     }
-
-    const takeprofitOrders = cancelOrders.filter(order => order.tokenCondition.includes("Take profit"));
+    const takeprofitOrders = filteredcancelOrders.filter(order => order.tokenCondition.includes("Take profit"));
     if(takeprofitOrders.length > 0){
         console.log('Take profit orders found.');
         for(const takeprofitorder of takeprofitOrders){
@@ -433,7 +475,7 @@ async function main() {
             for (let i = 0; i < 3; i++) {
                 await takeprofitexpirationhours.press('Backspace');
             }
-            await takeprofitexpirationhours.type("1");
+            await takeprofitexpirationhours.type("3");
             await delay(2000);
             const takeprofitorderbutton=await newTab1.waitForSelector("::-p-xpath((//button[contains(@class,'u-mt-s u-w-100 c-btn c-w-form__submit c-btn--purple js-show__sell-order__submit')])[1])", { timeout: 20000 });
             await takeprofitorderbutton.click();
@@ -450,13 +492,20 @@ async function main() {
                     takeprofitorder.status = "done"; 
                 } else {
                     console.log("Order creation failed or unexpected toast message.");
+                    
+                    if (fs.existsSync('order-creation-failed.txt')) {
+                        fs.appendFileSync(
+                            'order-creation-failed.txt', 
+                            `\n${takeprofitorder.tokenLink}, ${takeprofitorder.tokenCondition}, for entering this amount : ${takeprofitorder.tokenTargetPrice} failing to reactivate because of percentage or some other error \n`
+                        );
+                    }
                 }
             } catch (error) {
                 console.error("Toast message not found or timeout occurred:", error);
             }
             await delay(4000);
             await newTab1.close();
-            fs.writeFileSync('cancelled-orders.json', JSON.stringify(cancelOrders, null, 2));
+            fs.writeFileSync('cancelled-orders.json', JSON.stringify(filteredcancelOrders, null, 2));
             console.log('Updated cancelled orders saved to "cancelled-orders.json" file.');
             if(takeprofitorder.status === "done"){
                 console.log(`Order ${takeprofitorder.id} is marked as done. Deleting the order now...`);
@@ -492,7 +541,7 @@ async function main() {
             }
         
     }
-    const stoplossOrders = cancelOrders.filter(order => order.tokenCondition.includes("Stop loss"));
+    const stoplossOrders = filteredcancelOrders.filter(order => order.tokenCondition.includes("Stop loss"));
     if(stoplossOrders.length > 0){
         console.log('Stop loss orders found.');
         for (const stoplossorder of stoplossOrders) {
@@ -532,7 +581,7 @@ async function main() {
             for (let i = 0; i < 3; i++) {
                 await stoplossexpirationhours.press('Backspace');
             }
-            await stoplossexpirationhours.type("1");
+            await stoplossexpirationhours.type("3");
             await delay(2000);
             const stoplossorderbutton=await newTab2.waitForSelector("::-p-xpath((//button[contains(@class,'u-mt-s u-w-100 c-btn c-w-form__submit c-btn--purple js-show__sell-order__submit')])[1])", { timeout: 20000 });
             await stoplossorderbutton.click();
@@ -549,13 +598,20 @@ async function main() {
                     stoplossorder.status = "done"; 
                 } else {
                     console.log("Order creation failed or unexpected toast message.");
+                    if (fs.existsSync('order-creation-failed.txt')) {
+                        fs.appendFileSync(
+                            'order-creation-failed.txt', 
+                            `\n${stoplossorder.tokenLink}, ${stoplossorder.tokenCondition}, for entering this amount : ${stoplossorder.tokenTargetPrice} failing to reactivate because of percentage or some other error \n`
+                        );
+                    }
+
                 }
             } catch (error) {
                 console.error("Toast message not found or timeout occurred:", error);
             }
             await delay(4000);
             await newTab2.close();
-            fs.writeFileSync('cancelled-orders.json', JSON.stringify(cancelOrders, null, 2));
+            fs.writeFileSync('cancelled-orders.json', JSON.stringify(filteredcancelOrders, null, 2));
             console.log('Updated cancelled orders saved to "cancelled-orders.json" file.');
 
             if(stoplossorder.status === "done"){
@@ -591,12 +647,19 @@ async function main() {
         }
     }
    
-    await delay(7000);
+    await delay(5000);
     await browser.close();
     console.log('All orders completed.'); 
     console.log('Automation complete.');
+    setTimeout(async () => {
+        console.log('Restarting the main function after 6 minutes');
+        await main(); 
+    }, 6 * 60 * 1000);
     
 };
 
-main();
+main()
+
+
+
 

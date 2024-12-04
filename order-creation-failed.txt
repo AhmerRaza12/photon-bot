@@ -1,0 +1,7 @@
+https://photon-sol.tinyastro.io/en/lp/pool_redirect?id=6946072,  Buy dip at <= -64.76%,2560000 failed to reactivate order 
+
+https://photon-sol.tinyastro.io/en/lp/pool_redirect?id=7794005, Buy dip at <= -43.9%, 20580 failed to reactivate order
+https://photon-sol.tinyastro.io/en/lp/pool_redirect?id=7730864, Buy dip at <= -12.98%, 185130 failed to reactivate order
+https://photon-sol.tinyastro.io/en/lp/pool_redirect?id=7792022, Buy dip at <= -87.98%, 71040 failed to reactivate order
+https://photon-sol.tinyastro.io/en/lp/pool_redirect?id=6946072, Buy dip at <= -64.76%, 2560000 failed to reactivate order
+https://photon-sol.tinyastro.io/en/lp/pool_redirect?id=7730864, Buy dip at <= -12.98%, 185130 failed to reactivate order
