@@ -2,28 +2,32 @@ const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
 require('dotenv').config();
-
+const {execSync} = require('child_process');
 const fs = require('fs');
 const { timeout } = require('puppeteer');
+const path = require('path');
 
 const PHANTOM_PRIVATE_KEY=process.env.PHANTOM_PRIVATE_KEY;
 const PHANTOM_PASSWORD= process.env.PHANTOM_PASSWORD;
 console.log(PHANTOM_PRIVATE_KEY);
-const phantom_extension_path = 'C:/Users/ahmer/AppData/Local/Google/Chrome/User Data/Default/Extensions/bfnaelmomeimhlpmgjnjophhpkkoljpa/24.26.0_0';
+const phantom_extension_path = 'C:/Users/ahmer/AppData/Local/Google/Chrome/User Data/Default/Extensions/bfnaelmomeimhlpmgjnjophhpkkoljpa/24.27.1_0';
 const chrome_user_data_dir = 'C:/Users/ahmer/new-new-profile';
-
+let browser = null;
+const MAX_DIRECTORY_SIZE_MB = 450;
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function main() {
-    // Delete the cancelled-orders.json file if it exists
+    try {
+        await cleanUpBrowser();
+        await directoryCleanup(chrome_user_data_dir);
     if (fs.existsSync('cancelled-orders.json')) {
         fs.unlinkSync('cancelled-orders.json');
         console.log('Deleted "cancelled-orders.json" file.');
     }
     const browser = await puppeteer.launch({
-        headless: false,
+        headless: 'new',
         defaultViewport: null,
         args: [
              `--disable-extensions-except=${phantom_extension_path}`,
@@ -40,7 +44,6 @@ async function main() {
     let mainPage = pages.length > 0 ? pages[0] : await browser.newPage();
     await mainPage.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36');
     await mainPage.goto('https://photon-sol.tinyastro.io/');
-    console.log('Main page opened: https://photon-sol.tinyastro.io/');
     await delay(5000); 
 
     const allPages = await browser.pages();
@@ -182,7 +185,7 @@ async function main() {
         });
         await delay(2000);
     
-        console.log('Scrolling meow');
+        console.log('Scrolling horizontally');
     
         const currentHeight = await mainPage.evaluate('document.body.scrollHeight');
         if (currentHeight === previousHeight) {
@@ -203,12 +206,12 @@ async function main() {
             console.log('Scrolled to the end of the page.');
     
             orderscount = await mainPage.$$eval("::-p-xpath(//div[@class='c-grid-table__tr c-trades-table__tr c-trades-table__tr--buy'])", rows => rows.length);
-            console.log('Total Orders:', orderscount);
+            console.log('Total Orders:', orderscount.toString());
         }
     }
     await delay(3000);
 
-    // first find duplicate orders such that token link and token condition should be same and the duplicate should be the one that has span with text canceled first locate tr with matching token link and token condition then check if there are more than one span with text and for the one with canceled text click on the trash icon
+    
    
 
     const cancelOrders = await mainPage.$$eval(
@@ -380,7 +383,6 @@ async function main() {
                 const toastText = await toastmessage.evaluate(el => el.textContent.trim());
                 
                 if (toastText.includes("Order has been successfully created")) {
-                    console.log("Order successfully created. Updating status to 'done'.");
                     buydiporder.status = "done"; 
                 } else {
                     console.log("Order creation failed or unexpected toast message.");
@@ -417,7 +419,6 @@ async function main() {
             
                         if (deleteButton) {
                             await deleteButton.click();
-                            console.log(`Delete button clicked for Order ID: ${buydiporder.id}`);
                         } 
                         else {
                             console.error(`Delete button not found for Order ID: ${buydiporder.id}.`);
@@ -649,16 +650,69 @@ async function main() {
    
     await delay(5000);
     await browser.close();
+    browser = null; 
     console.log('All orders completed.'); 
     console.log('Automation complete.');
     setTimeout(async () => {
         console.log('Restarting the main function after 6 minutes');
         await main(); 
     }, 6 * 60 * 1000);
+}catch (error) {
+    console.error('Error in main function:', error);
+    await cleanUpBrowser();
+    console.log('main crashed so start again in an instant');
+    setTimeout(async () => {
+        await main(); 
+    }, 1000);
+}
     
 };
-
-main()
+async function cleanUpBrowser() {
+    try {
+        if (browser) {
+            console.log('Closing active browser instance...');
+            await browser.close();
+            browser = null;
+        }
+        console.log('Killing orphaned browser processes...');
+        execSync('pkill -9 chrome || true'); 
+        console.log('Orphaned browser processes terminated.');
+    } catch (err) {
+        console.error('Error during browser cleanup:', err.message);
+    }
+}
+async function directoryCleanup(directoryPath) {
+    try {
+        const directorySize = getDirectorySize(directoryPath) / (1024 * 1024);
+        if (directorySize > MAX_DIRECTORY_SIZE_MB) {
+            console.log('Directory exceeds MAX_DIRECTORY_SIZE_MB set in file');
+            fs.rmSync(directoryPath, { recursive: true, force: true });
+            console.log('User session directory deleted.');
+        }else{
+            console.log('Directory size is within the limit.');
+        }
+    } catch (error) {
+        console.error('Error during directory cleanup:', error.message);
+    }
+}
+function getDirectorySize(directoryPath) {
+    let totalSize = 0;
+    function calculateSize(directory) {
+        const files = fs.readdirSync(directory);
+        for (const file of files) {
+            const filePath = path.join(directory, file);
+            const stats = fs.statSync(filePath);
+            if (stats.isDirectory()) {
+                calculateSize(filePath);
+            } else {
+                totalSize += stats.size;
+            }
+        }
+    }
+    calculateSize(directoryPath);
+    return totalSize; 
+}
+main();
 
 
 
