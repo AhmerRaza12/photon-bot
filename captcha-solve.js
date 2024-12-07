@@ -7,7 +7,7 @@ puppeteer.use(StealthPlugin());
 
 (async () => {
     const browser = await puppeteer.launch({
-        headless: true, // Running in headless mode
+        headless: 'new', // Use new headless mode to reduce bot detection
         defaultViewport: null,
         args: [
             '--no-sandbox',
@@ -17,65 +17,43 @@ puppeteer.use(StealthPlugin());
             '--disable-features=IsolateOrigins,site-per-process',
             '--disable-infobars',
             '--window-size=1920,1080',
+            '--enable-features=NetworkService,NetworkServiceInProcess',
         ],
     });
 
     const page = await browser.newPage();
 
-    // Set a realistic user agent
-    await page.setUserAgent(
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
-    );
+    // Set a realistic user agent and headers
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36');
 
-    // Set Accept-Language and other headers
-    await page.setExtraHTTPHeaders({
-        'Accept-Language': 'en-US,en;q=0.9',
-    });
+    // await page.setExtraHTTPHeaders({
+    //     'Accept-Language': 'en-US,en;q=0.9',
+    // });
 
     // Prevent detection of headless Chrome by overriding certain properties
     await page.evaluateOnNewDocument(() => {
         // Mimic a real browser environment
-        Object.defineProperty(navigator, 'webdriver', {
-            get: () => undefined, // Remove the "webdriver" property
-        });
-
-        Object.defineProperty(window, 'chrome', {
-            get: () => ({
-                runtime: {},
-            }),
-        });
-
-        Object.defineProperty(navigator, 'platform', {
-            get: () => 'Win32', // Mimic a Windows platform
-        });
-
-        Object.defineProperty(navigator, 'plugins', {
-            get: () => [1, 2, 3], // Fake plugins
-        });
-
-        Object.defineProperty(navigator, 'languages', {
-            get: () => ['en-US', 'en'], // Mimic browser language settings
-        });
+        Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+        Object.defineProperty(window, 'chrome', { get: () => ({ runtime: {} }) });
+        Object.defineProperty(navigator, 'platform', { get: () => 'Win32' });
+        Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+        Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
     });
 
-    // Set viewport to mimic a realistic screen resolution
     await page.setViewport({ width: 1920, height: 1080 });
 
     try {
         console.log('Navigating to the page...');
-        await page.goto('https://photon-sol.tinyastro.io/', {
-            waitUntil: 'domcontentloaded', // Wait for the DOM to load
-        });
+        // Attempt to navigate to the page and wait for Cloudflare to resolve the challenge
+        await page.goto('https://photon-sol.tinyastro.io/', { waitUntil: 'domcontentloaded' });
 
-        // Wait for a specific element to ensure the page has loaded
-        await page.waitForSelector('body', { timeout: 10000 });
+        // Introduce a delay to allow for Cloudflare challenge resolution
+        await setTimeout(8000); // Increase timeout if needed
 
-        // Optional: If there is a JavaScript challenge, wait for Cloudflare's process to resolve
-        await setTimeout(5000); // Increase timeout if needed
-
-        // Extract and print the page content
+        // Optional: Check the content after a brief wait to ensure Cloudflare has passed
         const content = await page.content();
         console.log('Page HTML:', content);
+
     } catch (error) {
         console.error('Error navigating to the page:', error);
     } finally {
