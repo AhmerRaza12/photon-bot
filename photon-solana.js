@@ -92,7 +92,7 @@ async function main() {
             await extensionPage.$eval("::-p-xpath(//button[@data-testid='onboarding-form-submit-button'])", button => {
                 button.click();  
             });
-            await extensionPage.close();
+            console.log("Extension page steps completed.");
             await delay(6000);
             await mainPage.bringToFront();
             await mainPage.waitForSelector("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", { timeout: 20000 });
@@ -105,8 +105,7 @@ async function main() {
             const allPages = await browser.pages();
             const popupPage = allPages.find(page => page.url().includes('chrome-extension://') && page.url().includes('notification.html'));
             if (popupPage) {
-               await mainPage.close();
-                await popupPage.bringToFront();
+
                 await delay(2000);
                 try {
                     const connectButton = await popupPage.waitForSelector('::-p-xpath(//button[contains(., "Connect")])', { timeout: 20000 });
@@ -165,7 +164,6 @@ async function main() {
         await delay(5000); 
 
     }
-    await mainPage.bringToFront();
     console.log('On main page.')
     console.log('current url:', mainPage.url());
     const orderButton = await mainPage.waitForSelector("::-p-xpath(//a[.='Orders'])", { timeout: 20000 });
