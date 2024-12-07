@@ -93,15 +93,17 @@ async function main() {
                 button.click();  
             });
             console.log("Extension page steps completed.");
-            await delay(8000);
+            await delay(6000);
             await mainPage.waitForSelector('body', { timeout: 30000 });
             // await mainPage.bringToFront();
             await mainPage.evaluate(() => window.scrollTo(0, 100));
             console.log("Page brought to front. Focusing...");
-            await delay(4000);
             await mainPage.focus('body');
             console.log("Focused the body element");
-            // console log mainpage whole html
+            // find all buttons in the page
+            const buttons = await mainPage.$$('button');
+            console.log("Found buttons:", buttons.length);
+            
 
             const connectButton = await mainPage.waitForSelector("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", { timeout: 20000 });
             await connectButton.click();
