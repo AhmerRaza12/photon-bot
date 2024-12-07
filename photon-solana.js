@@ -92,10 +92,12 @@ async function main() {
             await extensionPage.$eval("::-p-xpath(//button[@data-testid='onboarding-form-submit-button'])", button => {
                 button.click();  
             });
-            await delay(4000);
+            await delay(8000);
             await mainPage.bringToFront();
-            await mainPage.waitForSelector("::-p-xpath(//button[contains(.,'Connect wallet')])", { timeout: 20000 });
-            await mainPage.$eval("::-p-xpath(//button[contains(.,'Connect wallet')])", button => {
+            // print active tab url
+            console.log('current url:', mainPage.url());
+            await mainPage.waitForSelector("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", { timeout: 20000 });
+            await mainPage.$eval("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", button => {
                 button.click();  
             });
             await delay(4000);
