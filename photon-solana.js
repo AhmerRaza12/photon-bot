@@ -94,6 +94,9 @@ async function main() {
             });
             console.log("Extension page steps completed.");
             await delay(6000);
+            // switch back to main tab
+            mainPage = allPages.find(page => !page.url().includes('chrome-extension://'));
+            await mainPage.bringToFront();
             await mainPage.waitForSelector('body', { timeout: 30000 });
             // await mainPage.bringToFront();
             await mainPage.evaluate(() => window.scrollTo(0, 100));
@@ -101,8 +104,7 @@ async function main() {
             await mainPage.focus('body');
             console.log("Focused the body element");
         
-            // print html of the whole page
-            console.log(mainPage.content());
+          
 
             
 
