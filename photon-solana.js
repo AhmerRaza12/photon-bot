@@ -11,6 +11,7 @@ const PHANTOM_PRIVATE_KEY=process.env.PHANTOM_PRIVATE_KEY;
 const PHANTOM_PASSWORD= process.env.PHANTOM_PASSWORD;
 console.log(PHANTOM_PRIVATE_KEY);
 const phantom_extension_path = '/opt/google/chrome/extensions/phantom-extension';
+// const phantom_extension_path='C:/Users/ahmer/AppData/Local/Google/Chrome/User Data/Default/Extensions/bfnaelmomeimhlpmgjnjophhpkkoljpa/24.27.1_0';
 const chrome_user_data_dir = './user-directory';
 let browser = null;
 const MAX_DIRECTORY_SIZE_MB = 450;
@@ -45,7 +46,9 @@ async function main() {
     let mainPage = pages.length > 0 ? pages[0] : await browser.newPage();
     await mainPage.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36');
     await mainPage.goto('https://photon-sol.tinyastro.io/');
-    await delay(5000); 
+    await delay(5000);
+    const pageContent = await mainPage.content();
+    console.log(pageContent); 
 
     const allPages = await browser.pages();
     let extensionPage = allPages.find(page => page.url().includes('chrome-extension://'));
