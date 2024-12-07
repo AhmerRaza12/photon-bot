@@ -95,6 +95,7 @@ async function main() {
             console.log("Extension page steps completed.");
             await delay(6000);
             await mainPage.bringToFront();
+            await mainPage.focus();
             await mainPage.waitForSelector("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", { timeout: 20000 });
             await mainPage.$eval("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", button => {
                 button.click();  
