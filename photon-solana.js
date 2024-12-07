@@ -27,7 +27,7 @@ async function main() {
         console.log('Deleted "cancelled-orders.json" file.');
     }
     const browser = await puppeteer.launch({
-        headless: 'new',
+        headless: true,
         defaultViewport: null,
         args: [
              `--disable-extensions-except=${phantom_extension_path}`,
@@ -92,11 +92,11 @@ async function main() {
             await extensionPage.$eval("::-p-xpath(//button[@data-testid='onboarding-form-submit-button'])", button => {
                 button.click();  
             });
-            await extensionPage.close();
-            await delay(8000);
+            // await extensionPage.close();
+            await delay(6000);
             await mainPage.bringToFront();
             // print active tab url
-            console.log(window.location.href);
+            // console.log(window.location.href);
             await mainPage.waitForSelector("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", { timeout: 20000 });
             await mainPage.$eval("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", button => {
                 button.click();  
