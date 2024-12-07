@@ -49,7 +49,7 @@ async function main() {
 
     const allPages = await browser.pages();
     let extensionPage = allPages.find(page => page.url().includes('chrome-extension://'));
-
+    console.log(allPages.length);
     if (extensionPage) {
         console.log('Extension page detected.');
         console.log('Wait until we complete the sign-in process...');
@@ -92,14 +92,9 @@ async function main() {
             await extensionPage.$eval("::-p-xpath(//button[@data-testid='onboarding-form-submit-button'])", button => {
                 button.click();  
             });
-            // await extensionPage.close();
+            await extensionPage.close();
             await delay(6000);
             await mainPage.bringToFront();
-            // print active tab url
-            // console.log(window.location.href);
-            await mainPage.setViewport({ width: 1920, height: 1080 });
-            await mainPage.click('body');  
-            await delay(2000);
             await mainPage.waitForSelector("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", { timeout: 20000 });
             await mainPage.$eval("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", button => {
                 button.click();  
@@ -108,7 +103,7 @@ async function main() {
             const allPages = await browser.pages();
             const popupPage = allPages.find(page => page.url().includes('chrome-extension://') && page.url().includes('notification.html'));
             if (popupPage) {
-               
+               await mainPage.close();
                 await popupPage.bringToFront();
                 await delay(2000);
                 try {
@@ -160,6 +155,13 @@ async function main() {
     } else {
         console.log('Extension not triggered, skipping onboarding.');
         console.log('No need to connect wallet. already connected');
+    }
+    if(!mainPage){
+        let mainPage = pages.length > 0 ? pages[0] : await browser.newPage();
+        await mainPage.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36');
+        await mainPage.goto('https://photon-sol.tinyastro.io/');
+        await delay(5000); 
+
     }
     await mainPage.bringToFront();
     console.log('On main page.')
