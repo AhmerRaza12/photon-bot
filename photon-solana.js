@@ -95,11 +95,9 @@ async function main() {
             console.log("Extension page steps completed.");
             await delay(6000);
             await mainPage.bringToFront();
-            await mainPage.focus();
-            await mainPage.waitForSelector("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", { timeout: 20000 });
-            await mainPage.$eval("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", button => {
-                button.click();  
-            });
+            await mainPage.focus('body');
+            const connectButton = await mainPage.waitForSelector("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", { timeout: 20000 });
+            await connectButton.click();
             console.log('Back on main page clicked Connect wallet button');
             await delay(4000);
             
@@ -125,6 +123,7 @@ async function main() {
                         if (confirmPopup && confirmPopup !== popupPage) {
                             console.log('Detected new popup or updated confirmation popup.');
                             await confirmPopup.bringToFront();
+                            await confirmPopup.focus();
                             break;
                         }
                         console.log(`Retrying to detect updated popup... (${i + 1}/5)`);
@@ -157,13 +156,6 @@ async function main() {
     } else {
         console.log('Extension not triggered, skipping onboarding.');
         console.log('No need to connect wallet. already connected');
-    }
-    if(!mainPage){
-        let mainPage = pages.length > 0 ? pages[0] : await browser.newPage();
-        await mainPage.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36');
-        await mainPage.goto('https://photon-sol.tinyastro.io/');
-        await delay(5000); 
-
     }
     console.log('On main page.')
     console.log('current url:', mainPage.url());
