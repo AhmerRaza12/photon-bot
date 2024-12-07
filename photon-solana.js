@@ -11,7 +11,7 @@ const PHANTOM_PRIVATE_KEY=process.env.PHANTOM_PRIVATE_KEY;
 const PHANTOM_PASSWORD= process.env.PHANTOM_PASSWORD;
 console.log(PHANTOM_PRIVATE_KEY);
 const phantom_extension_path = '/opt/google/chrome/extensions/phantom-extension';
-const chrome_user_data_dir = '/user-directory';
+const chrome_user_data_dir = './user-directory';
 let browser = null;
 const MAX_DIRECTORY_SIZE_MB = 450;
 function delay(ms) {
