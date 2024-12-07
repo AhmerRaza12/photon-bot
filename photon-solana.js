@@ -93,8 +93,9 @@ async function main() {
                 button.click();  
             });
             console.log("Extension page steps completed.");
-            await delay(6000);
+            await delay(8000);
             await mainPage.bringToFront();
+            await delay(4000);
             await mainPage.focus('body');
             const connectButton = await mainPage.waitForSelector("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", { timeout: 20000 });
             await connectButton.click();
