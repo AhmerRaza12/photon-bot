@@ -99,7 +99,9 @@ async function main() {
             await mainPage.$eval("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", button => {
                 button.click();  
             });
+            console.log('Back on main page clicked Connect wallet button');
             await delay(4000);
+            
             const allPages = await browser.pages();
             const popupPage = allPages.find(page => page.url().includes('chrome-extension://') && page.url().includes('notification.html'));
             if (popupPage) {
