@@ -97,6 +97,9 @@ async function main() {
             await mainPage.bringToFront();
             // print active tab url
             // console.log(window.location.href);
+            await mainPage.setViewport({ width: 1920, height: 1080 });
+            await mainPage.click('body');  
+            await delay(2000);
             await mainPage.waitForSelector("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", { timeout: 20000 });
             await mainPage.$eval("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", button => {
                 button.click();  
