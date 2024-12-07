@@ -94,10 +94,11 @@ async function main() {
             });
             await delay(4000);
             await mainPage.bringToFront();
+            await mainPage.waitForSelector("::-p-xpath(//button[contains(.,'Connect wallet')])", { timeout: 20000 });
             await mainPage.$eval("::-p-xpath(//button[contains(.,'Connect wallet')])", button => {
                 button.click();  
             });
-            await delay(3000);
+            await delay(4000);
             const allPages = await browser.pages();
             const popupPage = allPages.find(page => page.url().includes('chrome-extension://') && page.url().includes('notification.html'));
             if (popupPage) {
