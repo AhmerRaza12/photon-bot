@@ -100,9 +100,10 @@ async function main() {
             console.log("Page brought to front. Focusing...");
             await mainPage.focus('body');
             console.log("Focused the body element");
-            // find all buttons in the page
-            const buttons = await mainPage.$$('button');
-            console.log("Found buttons:", buttons.length);
+        
+            // print html of the whole page
+            console.log(mainPage.content());
+
             
 
             const connectButton = await mainPage.waitForSelector("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", { timeout: 20000 });
