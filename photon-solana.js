@@ -95,22 +95,14 @@ async function main() {
             console.log("Extension page steps completed.");
             await delay(8000);
             await mainPage.waitForSelector('body', { timeout: 30000 });
-            await mainPage.bringToFront();
-            await mainPage.evaluate(() => window.scrollTo(0, 0));
+            // await mainPage.bringToFront();
+            await mainPage.evaluate(() => window.scrollTo(0, 100));
             console.log("Page brought to front. Focusing...");
             await delay(4000);
             await mainPage.focus('body');
             console.log("Focused the body element");
-            const allButtons = await mainPage.$$eval('button', buttons => {
-                return buttons.map(button => ({
-                  text: button.innerText,
-                  classes: button.className,
-                  type: button.type,
-                  id: button.id
-                }));
-              });
-              
-            console.log("Found buttons:", allButtons);
+            // console log mainpage whole html
+
             const connectButton = await mainPage.waitForSelector("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", { timeout: 20000 });
             await connectButton.click();
             console.log('Back on main page clicked Connect wallet button');
