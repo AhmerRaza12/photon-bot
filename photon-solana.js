@@ -10,8 +10,8 @@ const path = require('path');
 const PHANTOM_PRIVATE_KEY=process.env.PHANTOM_PRIVATE_KEY;
 const PHANTOM_PASSWORD= process.env.PHANTOM_PASSWORD;
 console.log(PHANTOM_PRIVATE_KEY);
-const phantom_extension_path = 'C:/Users/ahmer/AppData/Local/Google/Chrome/User Data/Default/Extensions/bfnaelmomeimhlpmgjnjophhpkkoljpa/24.27.1_0';
-const chrome_user_data_dir = 'C:/Users/ahmer/new-new-profile';
+const phantom_extension_path = '/opt/google/chrome/extensions/phantom-extension';
+const chrome_user_data_dir = '/user-directory';
 let browser = null;
 const MAX_DIRECTORY_SIZE_MB = 450;
 function delay(ms) {
@@ -33,6 +33,7 @@ async function main() {
              `--disable-extensions-except=${phantom_extension_path}`,
             `--load-extension=${phantom_extension_path}`,
             '--start-maximized',
+            '--no-sandbox',
         ],
         userDataDir: chrome_user_data_dir
     });
