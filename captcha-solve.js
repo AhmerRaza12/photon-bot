@@ -32,7 +32,6 @@ const getHtmlThoughCloudflare = async (url) => {
 
     // Wait for some time to let any Cloudflare challenges complete (increase if needed)
     await setTimeout(8000); 
-
     // Get the page content
     const html = await page.content();
 
@@ -43,7 +42,6 @@ const getHtmlThoughCloudflare = async (url) => {
     console.error('Error fetching page content:', error);
   }
 };
-
 // Call the function to get the HTML content of the page
 getHtmlThoughCloudflare(link)
   .then((html) => {
