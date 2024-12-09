@@ -5,7 +5,7 @@ async function test() {
 
     const { browser, page } = await connect({
 
-        headless: true,
+        headless: false,
 
         args: [
             '--no-sandbox',
