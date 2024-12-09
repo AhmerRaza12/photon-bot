@@ -28,7 +28,7 @@ async function main() {
         console.log('Deleted "cancelled-orders.json" file.');
     }
     const browser = await puppeteer.launch({
-        headless: true,
+        headless: false,
         defaultViewport: null,
         args: [
              `--disable-extensions-except=${phantom_extension_path}`,
