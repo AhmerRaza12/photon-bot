@@ -1,4 +1,4 @@
 node_modules
 .env
 /cancelled-orders.json
-./user-directory
+/user-directory

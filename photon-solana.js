@@ -29,6 +29,7 @@ async function main() {
     const browser = await puppeteer.launch({
         headless: false,
         defaultViewport: null,
+        targetFilter: (target) => !!target.url(),
         args: [
              `--disable-extensions-except=${phantom_extension_path}`,
             `--load-extension=${phantom_extension_path}`,
@@ -36,7 +37,7 @@ async function main() {
             '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
-            '--auto-open-devtools-for-tabs',
+            // '--auto-open-devtools-for-tabs',
         ],
         userDataDir: chrome_user_data_dir
     });
