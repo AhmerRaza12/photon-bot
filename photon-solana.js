@@ -33,6 +33,7 @@ async function main() {
              `--disable-extensions-except=${phantom_extension_path}`,
             `--load-extension=${phantom_extension_path}`,
             '--start-maximized',
+            '--no-sandbox',
         ],
         userDataDir: chrome_user_data_dir
     });
