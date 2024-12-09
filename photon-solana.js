@@ -9,9 +9,8 @@ const path = require('path');
 
 const PHANTOM_PRIVATE_KEY=process.env.PHANTOM_PRIVATE_KEY;
 const PHANTOM_PASSWORD= process.env.PHANTOM_PASSWORD;
-console.log(PHANTOM_PRIVATE_KEY);
-const phantom_extension_path = '/opt/google/chrome/extensions/phantom-extension';
-// const phantom_extension_path='C:/Users/ahmer/AppData/Local/Google/Chrome/User Data/Default/Extensions/bfnaelmomeimhlpmgjnjophhpkkoljpa/24.27.1_0';
+// const phantom_extension_path = '/opt/google/chrome/extensions/phantom-extension';
+const phantom_extension_path='C:/Users/ahmer/AppData/Local/Google/Chrome/User Data/Default/Extensions/bfnaelmomeimhlpmgjnjophhpkkoljpa/24.27.1_0';
 const chrome_user_data_dir = './user-directory';
 let browser = null;
 const MAX_DIRECTORY_SIZE_MB = 450;
@@ -34,7 +33,6 @@ async function main() {
              `--disable-extensions-except=${phantom_extension_path}`,
             `--load-extension=${phantom_extension_path}`,
             '--start-maximized',
-            '--no-sandbox',
         ],
         userDataDir: chrome_user_data_dir
     });
@@ -46,13 +44,13 @@ async function main() {
     let mainPage = pages.length > 0 ? pages[0] : await browser.newPage();
     await mainPage.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36');
     await mainPage.goto('https://photon-sol.tinyastro.io/');
-    await delay(5000);
-    const pageContent = await mainPage.content();
-    console.log(pageContent); 
+    await delay(6000);
+    page_content = await mainPage.content();
+    console.log('Page content:', page_content); 
 
     const allPages = await browser.pages();
     let extensionPage = allPages.find(page => page.url().includes('chrome-extension://'));
-    console.log(allPages.length);
+
     if (extensionPage) {
         console.log('Extension page detected.');
         console.log('Wait until we complete the sign-in process...');
@@ -95,31 +93,17 @@ async function main() {
             await extensionPage.$eval("::-p-xpath(//button[@data-testid='onboarding-form-submit-button'])", button => {
                 button.click();  
             });
-            console.log("Extension page steps completed.");
-            await delay(6000);
-            // switch back to main tab
-            mainPage = allPages.find(page => !page.url().includes('chrome-extension://'));
-            await mainPage.bringToFront();
-            await mainPage.waitForSelector('body', { timeout: 30000 });
-            // await mainPage.bringToFront();
-            await mainPage.evaluate(() => window.scrollTo(0, 100));
-            console.log("Page brought to front. Focusing...");
-            await mainPage.focus('body');
-            console.log("Focused the body element");
-        
-          
-
-            
-
-            const connectButton = await mainPage.waitForSelector("::-p-xpath((//button[@class='c-btn p-home__btn js-login__btn'])[1])", { timeout: 20000 });
-            await connectButton.click();
-            console.log('Back on main page clicked Connect wallet button');
             await delay(4000);
-            
+            await mainPage.bringToFront();
+            await mainPage.$eval("::-p-xpath(//button[contains(.,'Connect wallet')])", button => {
+                button.click();  
+            });
+            await delay(3000);
             const allPages = await browser.pages();
             const popupPage = allPages.find(page => page.url().includes('chrome-extension://') && page.url().includes('notification.html'));
             if (popupPage) {
-
+               
+                await popupPage.bringToFront();
                 await delay(2000);
                 try {
                     const connectButton = await popupPage.waitForSelector('::-p-xpath(//button[contains(., "Connect")])', { timeout: 20000 });
@@ -138,7 +122,6 @@ async function main() {
                         if (confirmPopup && confirmPopup !== popupPage) {
                             console.log('Detected new popup or updated confirmation popup.');
                             await confirmPopup.bringToFront();
-                            await confirmPopup.focus();
                             break;
                         }
                         console.log(`Retrying to detect updated popup... (${i + 1}/5)`);
@@ -172,6 +155,7 @@ async function main() {
         console.log('Extension not triggered, skipping onboarding.');
         console.log('No need to connect wallet. already connected');
     }
+    await mainPage.bringToFront();
     console.log('On main page.')
     console.log('current url:', mainPage.url());
     const orderButton = await mainPage.waitForSelector("::-p-xpath(//a[.='Orders'])", { timeout: 20000 });
@@ -731,7 +715,6 @@ function getDirectorySize(directoryPath) {
     return totalSize; 
 }
 main();
-
 
 
 
