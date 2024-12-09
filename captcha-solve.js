@@ -10,6 +10,7 @@ async function test() {
         args: [
             '--no-sandbox',
             '--start-maximized',
+            '--auto-open-devtools-for-tabs',
         ],
 
         customConfig: {},
