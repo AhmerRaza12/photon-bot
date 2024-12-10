@@ -3,13 +3,16 @@ const { normalizeUserAgent } = require('./normalize-ua.js');
 const { Solver } = require('@2captcha/captcha-solver');
 const { readFileSync } = require('fs');
 require('dotenv').config();
-const {setTimeout } = require('timers/promises');
+const { setTimeout } = require('timers/promises');
+
 const CAPTCHA_API_KEY = process.env.CAPTCHA_API_KEY;
 const solver = new Solver(CAPTCHA_API_KEY);
 console.log(`Using 2captcha API key: ${CAPTCHA_API_KEY}`);
+
 (async () => {
     const userAgent = await normalizeUserAgent();
     console.log(userAgent);
+
     const browser = await puppeteer.launch({
         headless: false,
         defaultViewport: null,
@@ -45,9 +48,13 @@ console.log(`Using 2captcha API key: ${CAPTCHA_API_KEY}`);
         }
     });
 
-    page.goto('https://photon-sol.tinyastro.io/');
-    setTimeout(15000);
+    await page.goto('https://photon-sol.tinyastro.io/');
+    await setTimeout(15000); // Wait for the page to load and render properly
+
+    // Properly await screenshot and content
     await page.screenshot({ path: 'screenshot.png' });
-    page_content = await page.content();
-    console.log(page_content);
+    const pageContent = await page.content();
+    console.log(pageContent);
+
+    await browser.close(); // Optionally close the browser
 })();
