@@ -21,5 +21,6 @@ puppeteer.use(puppeteerExtraStealth());
     await page.goto('https://photon-sol.tinyastro.io/');
     await page.waitForNetworkIdle();
     await page.screenshot({ path: 'screenshot.png' });
+    console.log('page content:', await page.content());
 
 })();
