@@ -12,9 +12,9 @@ puppeteer.use(StealthPlugin());
 const CAPTCHA_API_KEY = process.env.CAPTCHA_API_KEY;
 const PHANTOM_PRIVATE_KEY=process.env.PHANTOM_PRIVATE_KEY;
 const PHANTOM_PASSWORD= process.env.PHANTOM_PASSWORD;
-const phantom_extension_path = '/opt/google/chrome/extensions/phantom-extension';
-// const phantom_extension_path='C:/Users/ahmer/AppData/Local/Google/Chrome/User Data/Default/Extensions/bfnaelmomeimhlpmgjnjophhpkkoljpa/24.28.0_0';
-const chrome_user_data_dir= '~/bot/photon-bot/user-directory';
+// const phantom_extension_path = '/opt/google/chrome/extensions/phantom-extension';
+const phantom_extension_path='C:/Users/ahmer/AppData/Local/Google/Chrome/User Data/Default/Extensions/bfnaelmomeimhlpmgjnjophhpkkoljpa/24.28.0_0';
+const chrome_user_data_dir= './user-directory';
 
 const solver = new Solver(CAPTCHA_API_KEY);
 let browser = null;
@@ -84,7 +84,6 @@ async function main() {
 
     await mainPage.goto('https://photon-sol.tinyastro.io/');
     await delay(6000); 
-    await mainPage.waitForSelector('span.p-home__title__speed__inner', { timeout: 60000 });
     await mainPage.reload();
     await delay(4000); 
 
@@ -231,7 +230,7 @@ async function main() {
     console.log('current url:', mainPage.url());
     await delay(2000);
     const orderButton = await mainPage.waitForSelector("::-p-xpath(//a[.='Orders'])", { timeout: 20000 });
-    await orderButton.click();
+    await mainPage.evaluate(button => button.click(), orderButton);
     await delay(6000);
     console.log('Clicked on Orders tab.');
     console.log('current url:', mainPage.url());
