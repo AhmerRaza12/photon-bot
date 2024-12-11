@@ -40,6 +40,10 @@ async function solveCaptcha(page, params) {
 async function main() {
     try {
         await cleanUpBrowser();
+        if (!fs.existsSync(chrome_user_data_dir)) {
+            fs.mkdirSync(chrome_user_data_dir, { recursive: true });
+            console.log(`Created user directory: ${chrome_user_data_dir}`);
+        }
         await directoryCleanup(chrome_user_data_dir);
         const userAgent = await normalizeUserAgent();
     if (fs.existsSync('cancelled-orders.json')) {
@@ -742,12 +746,16 @@ async function cleanUpBrowser() {
 }
 async function directoryCleanup(directoryPath) {
     try {
+        if (!fs.existsSync(directoryPath)) {
+            console.log(`Directory does not exist: ${directoryPath}`);
+            return; 
+        }
         const directorySize = getDirectorySize(directoryPath) / (1024 * 1024);
         if (directorySize > MAX_DIRECTORY_SIZE_MB) {
             console.log('Directory exceeds MAX_DIRECTORY_SIZE_MB set in file');
             fs.rmSync(directoryPath, { recursive: true, force: true });
             console.log('User session directory deleted.');
-        }else{
+        } else {
             console.log('Directory size is within the limit.');
         }
     } catch (error) {
