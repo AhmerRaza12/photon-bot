@@ -1,27 +1,46 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-puppeteer.use(StealthPlugin());
+const { Solver } = require('@2captcha/captcha-solver');
+const { normalizeUserAgent } = require('./normalize-ua.js');
+const { readFileSync } = require('fs');
 require('dotenv').config();
-const {execSync} = require('child_process');
+const { execSync } = require('child_process');
 const fs = require('fs');
-const { timeout } = require('puppeteer');
 const path = require('path');
+puppeteer.use(StealthPlugin());
 
+const CAPTCHA_API_KEY = process.env.CAPTCHA_API_KEY;
 const PHANTOM_PRIVATE_KEY=process.env.PHANTOM_PRIVATE_KEY;
 const PHANTOM_PASSWORD= process.env.PHANTOM_PASSWORD;
-const phantom_extension_path = '/opt/google/chrome/extensions/phantom-extension';
-// const phantom_extension_path='C:/Users/ahmer/AppData/Local/Google/Chrome/User Data/Default/Extensions/bfnaelmomeimhlpmgjnjophhpkkoljpa/24.27.1_0';
+// const phantom_extension_path = '/opt/google/chrome/extensions/phantom-extension';
+const phantom_extension_path='C:/Users/ahmer/AppData/Local/Google/Chrome/User Data/Default/Extensions/bfnaelmomeimhlpmgjnjophhpkkoljpa/24.27.1_0';
 const chrome_user_data_dir = './user-directory';
+
+const solver = new Solver(CAPTCHA_API_KEY);
 let browser = null;
-const MAX_DIRECTORY_SIZE_MB = 450;
+const MAX_DIRECTORY_SIZE_MB = 2050;
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function solveCaptcha(page, params) {
+    console.log('Solving the captcha...');
+    try {
+        const res = await solver.cloudflareTurnstile(params);
+        console.log(`Solved the captcha: ${res.id}`);
+        await page.evaluate((token) => {
+            cfCallback(token);
+        }, res.data);
+    } catch (e) {
+        console.error(`Captcha solving failed: ${e.message}`);
+    }
 }
 
 async function main() {
     try {
         await cleanUpBrowser();
         await directoryCleanup(chrome_user_data_dir);
+        const userAgent = await normalizeUserAgent();
     if (fs.existsSync('cancelled-orders.json')) {
         fs.unlinkSync('cancelled-orders.json');
         console.log('Deleted "cancelled-orders.json" file.');
@@ -33,6 +52,7 @@ async function main() {
              `--disable-extensions-except=${phantom_extension_path}`,
             `--load-extension=${phantom_extension_path}`,
             '--start-maximized',
+            `--user-agent=${userAgent}`,
             // '--auto-open-devtools-for-tabs',
         ],
         userDataDir: chrome_user_data_dir
@@ -44,7 +64,17 @@ async function main() {
 
     const pages = await browser.pages();
     let mainPage = pages.length > 0 ? pages[0] : null;
-    await mainPage.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36');
+    
+    const preloadFile = readFileSync('./inject.js', 'utf8');
+    await mainPage.evaluateOnNewDocument(preloadFile);
+    mainPage.on('console', async (msg) => {
+        const txt = msg.text();
+        if (txt.includes('intercepted-params:')) {
+            const params = JSON.parse(txt.replace('intercepted-params:', ''));
+            console.log('CAPTCHA parameters intercepted:', params);
+            await solveCaptcha(mainPage, params);
+        }
+    });
     await mainPage.goto('https://photon-sol.tinyastro.io/');
     await delay(6000);
     page_content = await mainPage.content();
