@@ -102,12 +102,12 @@ async function main() {
         try {
             await extensionPage.waitForSelector('::-p-xpath(//button[contains(@class, "ai2qbc9") and contains(text(), "I already have a wallet")])', { timeout: 20000});
             await extensionPage.$eval('::-p-xpath(//button[contains(@class, "ai2qbc9") and contains(text(), "I already have a wallet")])', button => {
-                button.evaluate(button => button.click());  
+                button.click();  
             });
             await delay(2000);
             
             importprivatekey = await extensionPage.waitForSelector('::-p-xpath(//button[3])', { timeout: 20000});
-            await importprivatekey.evaluate(button => button.click());
+            await importprivatekey.click();
           
             await delay(2000);
             name_input = await extensionPage.waitForSelector("::-p-xpath(//input[@name='name'])", { timeout: 20000});
@@ -117,7 +117,7 @@ async function main() {
             await private_key_input.type(PHANTOM_PRIVATE_KEY);
             await delay(2000);
             await extensionPage.$eval("::-p-xpath(//button[@data-testid='onboarding-form-submit-button'])", button => {
-                button.evaluate(button => button.click());  
+                button.click();  
             });
             await delay(2000);
             
@@ -128,21 +128,21 @@ async function main() {
             await confirm_password_input.type(PHANTOM_PASSWORD.toString());
             await delay(1000);
             checkbox_input = await extensionPage.waitForSelector("::-p-xpath(//input[@type='checkbox'])", { timeout: 20000});
-            await checkbox_input.evaluate(button => button.click());
+            await checkbox_input.click();
             await delay(1000);
             await extensionPage.$eval("::-p-xpath(//button[@data-testid='onboarding-form-submit-button'])", button => {
-                button.evaluate(button => button.click());  
+                button.click();  
             });
             await delay(4000);
             await extensionPage.$eval("::-p-xpath(//button[@data-testid='onboarding-form-submit-button'])", button => {
-                button.evaluate(button => button.click());  
+                button.click();  
             });
             console.log('Completed steps till extension page.');
             await delay(4000);
             try{
                 await mainPage.bringToFront();
             await mainPage.$eval("::-p-xpath(//button[contains(.,'Connect wallet')])", button => {
-                button.evaluate(button => button.click());  
+                button.click();  
             });
             await delay(3000);
 
