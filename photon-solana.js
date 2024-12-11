@@ -81,7 +81,6 @@ async function main() {
     await mainPage.goto('https://photon-sol.tinyastro.io/');
     await delay(6000); 
     await mainPage.waitForSelector('span.p-home__title__speed__inner', { timeout: 60000 });
-    console.log(window.location.href);
     await mainPage.reload();
     await delay(4000); 
 
