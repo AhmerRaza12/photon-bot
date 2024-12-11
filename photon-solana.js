@@ -164,10 +164,16 @@ async function main() {
                     const connectButton = await popupPage.waitForSelector('::-p-xpath(//button[contains(., "Connect")])', { timeout: 20000 });
                     if (connectButton) {
                         console.log('Connect button found.');
-                        // Ensure the button is clicked using evaluation
-                        await popupPage.evaluate(button => button.click(), connectButton);
+                        try{
+                            await popupPage.evaluate(button => button.click(), connectButton);
                         console.log('Connect button clicked.');
                         await delay(5000);
+
+                        }
+                        catch(error){
+                            console.log('Error clicking connect button:', error);
+                        }
+                        
                     } else {
                         throw new Error('Connect button not found or not interactable.');
                     }
@@ -199,7 +205,6 @@ async function main() {
                     const confirmButton = await confirmPopup.waitForSelector('::-p-xpath(//button[@data-testid="primary-button"])', { timeout: 20000 });
                     if (confirmButton) {
                         console.log('Confirm button found.');
-                        // Scroll into view before clicking
                         await confirmPopup.evaluate(button => button.scrollIntoView(), confirmButton);
                         await confirmPopup.evaluate(button => button.click(), confirmButton);
                         console.log('Confirm button clicked.');
