@@ -160,27 +160,28 @@ async function main() {
                 await delay(2000);
             
                 try {
+                    // Locate the "Connect" button
                     const connectButton = await popupPage.waitForSelector('::-p-xpath(//button[contains(., "Connect")])', { timeout: 20000 });
                     if (connectButton) {
                         console.log('Connect button found.');
-                        // first scroll to the button
-                        await connectButton.evaluate(button => button.scrollIntoView());
-                        await connectButton.click();
+                        // Ensure the button is clicked using evaluation
+                        await popupPage.evaluate(button => button.click(), connectButton);
                         console.log('Connect button clicked.');
                         await delay(5000);
                     } else {
                         throw new Error('Connect button not found or not interactable.');
                     }
-                
+            
                     let confirmPopup = null;
+                    // Retry loop to find the confirmation popup
                     for (let i = 0; i < 5; i++) {
                         const allPages = await browser.pages();
-                        confirmPopup = allPages.find(page => 
-                            page.url().includes('chrome-extension://') && 
+                        confirmPopup = allPages.find(page =>
+                            page.url().includes('chrome-extension://') &&
                             page.url().includes('notification.html') &&
                             !page.isClosed()
                         );
-                
+            
                         if (confirmPopup && confirmPopup !== popupPage) {
                             console.log('Detected new popup or updated confirmation popup.');
                             await confirmPopup.bringToFront();
@@ -189,25 +190,26 @@ async function main() {
                         console.log(`Retrying to detect updated popup... (${i + 1}/5)`);
                         await delay(2000);
                     }
-                
+            
                     if (!confirmPopup) {
                         throw new Error('Failed to detect updated popup window.');
                     }
-                
+            
+                    // Locate the "Confirm" button
                     const confirmButton = await confirmPopup.waitForSelector('::-p-xpath(//button[@data-testid="primary-button"])', { timeout: 20000 });
                     if (confirmButton) {
                         console.log('Confirm button found.');
-                        await confirmButton.evaluate(button => button.scrollIntoView());
-                        await confirmButton.click(); 
+                        // Scroll into view before clicking
+                        await confirmPopup.evaluate(button => button.scrollIntoView(), confirmButton);
+                        await confirmPopup.evaluate(button => button.click(), confirmButton);
                         console.log('Confirm button clicked.');
                         await delay(5000);
                     } else {
                         throw new Error('Confirm button not found or not interactable.');
                     }
                 } catch (error) {
-                    console.error('Error during connect and confirm wallet button clickup or found', error);
+                    console.error('Error during connect and confirm wallet button clickup or found:', error);
                 }
-                
             } else {
                 console.log('Popup page not detected!');
             }
