@@ -93,13 +93,13 @@ async function main() {
         try {
             await extensionPage.waitForSelector('::-p-xpath(//button[contains(@class, "ai2qbc9") and contains(text(), "I already have a wallet")])', { timeout: 20000});
             await extensionPage.$eval('::-p-xpath(//button[contains(@class, "ai2qbc9") and contains(text(), "I already have a wallet")])', button => {
-                button.click();  
+                button.evaluate(b => b.click());  
             });
             await delay(2000);
-            
+        
             importprivatekey = await extensionPage.waitForSelector('::-p-xpath(//button[3])', { timeout: 20000});
-            await importprivatekey.click();
-          
+            await importprivatekey.evaluate(b => b.click());
+            
             await delay(2000);
             name_input = await extensionPage.waitForSelector("::-p-xpath(//input[@name='name'])", { timeout: 20000});
             await name_input.type("any");
@@ -108,10 +108,10 @@ async function main() {
             await private_key_input.type(PHANTOM_PRIVATE_KEY);
             await delay(2000);
             await extensionPage.$eval("::-p-xpath(//button[@data-testid='onboarding-form-submit-button'])", button => {
-                button.click();  
+                button.evaluate(b => b.click());  
             });
             await delay(2000);
-            
+        
             password_input = await extensionPage.waitForSelector("::-p-xpath(//input[@name='password'])", { timeout: 20000});
             await password_input.type(PHANTOM_PASSWORD.toString());
             await delay(1000);
@@ -119,31 +119,31 @@ async function main() {
             await confirm_password_input.type(PHANTOM_PASSWORD.toString());
             await delay(1000);
             checkbox_input = await extensionPage.waitForSelector("::-p-xpath(//input[@type='checkbox'])", { timeout: 20000});
-            await checkbox_input.click();
+            await checkbox_input.evaluate(b => b.click());
             await delay(1000);
             await extensionPage.$eval("::-p-xpath(//button[@data-testid='onboarding-form-submit-button'])", button => {
-                button.click();  
+                button.evaluate(b => b.click());  
             });
             await delay(4000);
             await extensionPage.$eval("::-p-xpath(//button[@data-testid='onboarding-form-submit-button'])", button => {
-                button.click();  
+                button.evaluate(b => b.click());  
             });
             await delay(4000);
             await mainPage.bringToFront();
             await mainPage.$eval("::-p-xpath(//button[contains(.,'Connect wallet')])", button => {
-                button.click();  
+                button.evaluate(b => b.click());  
             });
             await delay(3000);
             const allPages = await browser.pages();
             const popupPage = allPages.find(page => page.url().includes('chrome-extension://') && page.url().includes('notification.html'));
             if (popupPage) {
-               
+        
                 await popupPage.bringToFront();
                 await delay(2000);
                 try {
                     const connectButton = await popupPage.waitForSelector('::-p-xpath(//button[contains(., "Connect")])', { timeout: 20000 });
-                    await connectButton.click();
-                 
+                    await connectButton.evaluate(b => b.click());
+        
                     await delay(5000); 
                     let confirmPopup = null;
                     for (let i = 0; i < 5; i++) { 
@@ -153,7 +153,7 @@ async function main() {
                             page.url().includes('notification.html') &&
                             !page.isClosed()
                         );
-                
+        
                         if (confirmPopup && confirmPopup !== popupPage) {
                             console.log('Detected new popup or updated confirmation popup.');
                             await confirmPopup.bringToFront();
@@ -162,27 +162,25 @@ async function main() {
                         console.log(`Retrying to detect updated popup... (${i + 1}/5)`);
                         await delay(2000); 
                     }
-                
+        
                     if (!confirmPopup) {
                         throw new Error('Failed to detect updated popup window.');
                     }
-                
+        
                     const confirmButton = await confirmPopup.waitForSelector('::-p-xpath(//button[@data-testid="primary-button"])', { timeout: 20000 });
-                    await confirmButton.click();
-                  
-                
+                    await confirmButton.evaluate(b => b.click());
+        
                     await delay(5000);
-                
+        
                 } catch (error) {
                     console.error('Error during wallet connection:', error);
                 }
-                
-
+        
             }
             else{
                 console.log('Popup page not detected!');
             }
-
+        
         } catch (error) {
             console.error('Error waiting for or clicking wallet button:', error);
         }
