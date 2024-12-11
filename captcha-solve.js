@@ -14,8 +14,9 @@ console.log(`Using 2captcha API key: ${CAPTCHA_API_KEY}`);
     console.log(userAgent);
 
     const browser = await puppeteer.launch({
-        headless: false,
+        headless: true,
         defaultViewport: null,
+        // devtools: true,
         args: [
             '--start-maximized',
             `--user-agent=${userAgent}`,
@@ -49,12 +50,12 @@ console.log(`Using 2captcha API key: ${CAPTCHA_API_KEY}`);
     });
 
     await page.goto('https://photon-sol.tinyastro.io/');
-    await setTimeout(15000); // Wait for the page to load and render properly
+    await setTimeout(15000); 
 
-    // Properly await screenshot and content
+
     await page.screenshot({ path: 'screenshot.png' });
     const pageContent = await page.content();
     console.log(pageContent);
 
-    await browser.close(); // Optionally close the browser
+    await browser.close(); 
 })();
