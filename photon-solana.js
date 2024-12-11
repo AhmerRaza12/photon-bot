@@ -18,7 +18,7 @@ const chrome_user_data_dir= '~/bot/photon-bot/user-directory';
 
 const solver = new Solver(CAPTCHA_API_KEY);
 let browser = null;
-const MAX_DIRECTORY_SIZE_MB = 8000;
+// const MAX_DIRECTORY_SIZE_MB = 8000;
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -39,12 +39,12 @@ async function solveCaptcha(page, params) {
 
 async function main() {
     try {
-        await cleanUpBrowser();
-        if (!fs.existsSync(chrome_user_data_dir)) {
-            fs.mkdirSync(chrome_user_data_dir, { recursive: true });
-            console.log(`Created user directory: ${chrome_user_data_dir}`);
-        }
-        await directoryCleanup(chrome_user_data_dir);
+        // await cleanUpBrowser();
+        // if (!fs.existsSync(chrome_user_data_dir)) {
+        //     fs.mkdirSync(chrome_user_data_dir, { recursive: true });
+        //     console.log(`Created user directory: ${chrome_user_data_dir}`);
+        // }
+        // await directoryCleanup(chrome_user_data_dir);
         const userAgent = await normalizeUserAgent();
     if (fs.existsSync('cancelled-orders.json')) {
         fs.unlinkSync('cancelled-orders.json');
@@ -754,41 +754,41 @@ async function cleanUpBrowser() {
         console.error('Error during browser cleanup:', err.message);
     }
 }
-async function directoryCleanup(directoryPath) {
-    try {
-        if (!fs.existsSync(directoryPath)) {
-            console.log(`Directory does not exist: ${directoryPath}`);
-            return; 
-        }
-        const directorySize = getDirectorySize(directoryPath) / (1024 * 1024);
-        if (directorySize > MAX_DIRECTORY_SIZE_MB) {
-            console.log('Directory exceeds MAX_DIRECTORY_SIZE_MB set in file');
-            fs.rmSync(directoryPath, { recursive: true, force: true });
-            console.log('User session directory deleted.');
-        } else {
-            console.log('Directory size is within the limit.');
-        }
-    } catch (error) {
-        console.error('Error during directory cleanup:', error.message);
-    }
-}
-function getDirectorySize(directoryPath) {
-    let totalSize = 0;
-    function calculateSize(directory) {
-        const files = fs.readdirSync(directory);
-        for (const file of files) {
-            const filePath = path.join(directory, file);
-            const stats = fs.statSync(filePath);
-            if (stats.isDirectory()) {
-                calculateSize(filePath);
-            } else {
-                totalSize += stats.size;
-            }
-        }
-    }
-    calculateSize(directoryPath);
-    return totalSize; 
-}
+// async function directoryCleanup(directoryPath) {
+//     try {
+//         if (!fs.existsSync(directoryPath)) {
+//             console.log(`Directory does not exist: ${directoryPath}`);
+//             return; 
+//         }
+//         const directorySize = getDirectorySize(directoryPath) / (1024 * 1024);
+//         if (directorySize > MAX_DIRECTORY_SIZE_MB) {
+//             console.log('Directory exceeds MAX_DIRECTORY_SIZE_MB set in file');
+//             fs.rmSync(directoryPath, { recursive: true, force: true });
+//             console.log('User session directory deleted.');
+//         } else {
+//             console.log('Directory size is within the limit.');
+//         }
+//     } catch (error) {
+//         console.error('Error during directory cleanup:', error.message);
+//     }
+// }
+// function getDirectorySize(directoryPath) {
+//     let totalSize = 0;
+//     function calculateSize(directory) {
+//         const files = fs.readdirSync(directory);
+//         for (const file of files) {
+//             const filePath = path.join(directory, file);
+//             const stats = fs.statSync(filePath);
+//             if (stats.isDirectory()) {
+//                 calculateSize(filePath);
+//             } else {
+//                 totalSize += stats.size;
+//             }
+//         }
+//     }
+//     calculateSize(directoryPath);
+//     return totalSize; 
+// }
 main();
 
 
