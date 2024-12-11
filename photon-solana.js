@@ -18,7 +18,7 @@ const chrome_user_data_dir = './user-directory';
 
 const solver = new Solver(CAPTCHA_API_KEY);
 let browser = null;
-const MAX_DIRECTORY_SIZE_MB = 2050;
+const MAX_DIRECTORY_SIZE_MB = 5000;
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -53,6 +53,7 @@ async function main() {
             `--load-extension=${phantom_extension_path}`,
             '--start-maximized',
             `--user-agent=${userAgent}`,
+            '--no-sandbox',
             // '--auto-open-devtools-for-tabs',
         ],
         userDataDir: chrome_user_data_dir
