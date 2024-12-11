@@ -160,16 +160,29 @@ async function main() {
                 await delay(2000);
             
                 try {
+                    // Handle connect button
                     const connectButton = await popupPage.waitForSelector('::-p-xpath(//button[contains(., "Connect")])', { timeout: 20000 });
                     if (connectButton) {
                         console.log('Connect button found.');
-                        await connectButton.click(); // Directly click on the element handle
-                        console.log('Connect button clicked.');
-                        await delay(5000);
+            
+                        // Ensure button is visible and clickable
+                        const isClickable = await connectButton.evaluate(button => {
+                            const rect = button.getBoundingClientRect();
+                            return rect.top >= 0 && rect.left >= 0 && rect.bottom <= window.innerHeight && rect.right <= window.innerWidth;
+                        });
+            
+                        if (isClickable) {
+                            await connectButton.click();
+                            console.log('Connect button clicked.');
+                            await delay(5000);
+                        } else {
+                            throw new Error('Connect button found but not clickable.');
+                        }
                     } else {
                         throw new Error('Connect button not found or not interactable.');
                     }
-                
+            
+                    // Handle confirm popup
                     let confirmPopup = null;
                     for (let i = 0; i < 5; i++) {
                         const allPages = await browser.pages();
@@ -178,33 +191,46 @@ async function main() {
                             page.url().includes('notification.html') &&
                             !page.isClosed()
                         );
-                
+            
                         if (confirmPopup && confirmPopup !== popupPage) {
                             console.log('Detected new popup or updated confirmation popup.');
                             await confirmPopup.bringToFront();
                             break;
                         }
+            
                         console.log(`Retrying to detect updated popup... (${i + 1}/5)`);
                         await delay(2000);
                     }
-                
+            
                     if (!confirmPopup) {
                         throw new Error('Failed to detect updated popup window.');
                     }
-                
+            
+                    // Handle confirm button
                     const confirmButton = await confirmPopup.waitForSelector('::-p-xpath(//button[@data-testid="primary-button"])', { timeout: 20000 });
                     if (confirmButton) {
                         console.log('Confirm button found.');
-                        await confirmButton.click(); // Directly click on the element handle
-                        console.log('Confirm button clicked.');
-                        await delay(5000);
+            
+                        // Ensure button is clickable
+                        const isClickable = await confirmButton.evaluate(button => {
+                            const rect = button.getBoundingClientRect();
+                            return rect.top >= 0 && rect.left >= 0 && rect.bottom <= window.innerHeight && rect.right <= window.innerWidth;
+                        });
+            
+                        if (isClickable) {
+                            await confirmButton.click();
+                            console.log('Confirm button clicked.');
+                            await delay(5000);
+                        } else {
+                            throw new Error('Confirm button found but not clickable.');
+                        }
                     } else {
                         throw new Error('Confirm button not found or not interactable.');
                     }
                 } catch (error) {
                     console.error('Error during connect and confirm wallet button clickup or found', error);
                 }
-                
+            
             } else {
                 console.log('Popup page not detected!');
             }
