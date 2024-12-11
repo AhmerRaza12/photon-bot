@@ -84,6 +84,7 @@ async function main() {
 
     await mainPage.goto('https://photon-sol.tinyastro.io/');
     await delay(6000); 
+    await mainPage.waitForSelector('img.c-logo__thumb', { timeout: 60000 });
     await mainPage.reload();
     await delay(4000); 
 
