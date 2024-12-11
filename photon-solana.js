@@ -133,16 +133,24 @@ async function main() {
             await extensionPage.$eval("::-p-xpath(//button[@data-testid='onboarding-form-submit-button'])", button => {
                 button.click();  
             });
+            console.log('Completed steps till extension page.');
             await delay(4000);
-            await mainPage.bringToFront();
+            try{
+                await mainPage.bringToFront();
             await mainPage.$eval("::-p-xpath(//button[contains(.,'Connect wallet')])", button => {
                 button.click();  
             });
             await delay(3000);
+
+            }
+            catch(error){
+                console.log('Error in bringing main page to front or clicking connect wallet button:', error);
+            }
+            
             const allPages = await browser.pages();
             const popupPage = allPages.find(page => page.url().includes('chrome-extension://') && page.url().includes('notification.html'));
             if (popupPage) {
-               
+                console.log('Popup page detected.');
                 await popupPage.bringToFront();
                 await delay(2000);
                 try {
@@ -150,6 +158,7 @@ async function main() {
                     await connectButton.click();
                  
                     await delay(5000); 
+                    console.log('Clicked connect button on the popup page after being returned from the extensionpage to main page.');
                     let confirmPopup = null;
                     for (let i = 0; i < 5; i++) { 
                         const allPages = await browser.pages();
