@@ -30,7 +30,8 @@ async function solveCaptcha(page, params) {
         console.log(`Solved the captcha: ${res.id}`);
         await page.evaluate((token) => {
             cfCallback(token);
-        }, res.data);
+        }, res.data);    
+        await delay(5000); 
     } catch (e) {
         console.error(`Captcha solving failed: ${e.message}`);
     }
@@ -76,11 +77,15 @@ async function main() {
             await solveCaptcha(mainPage, params);
         }
     });
-    await mainPage.goto('https://photon-sol.tinyastro.io/');
-    await delay(6000);
-    // refresh mainPage
 
-    page_content = await mainPage.content();
+    await mainPage.goto('https://photon-sol.tinyastro.io/');
+    await delay(6000); 
+    await mainPage.waitForNavigation({ waitUntil: 'load' });
+    await mainPage.reload();
+    await delay(4000); 
+
+    
+    const page_content = await mainPage.content();
     console.log('Page content:', page_content); 
 
     const allPages = await browser.pages();
