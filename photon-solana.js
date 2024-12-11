@@ -98,12 +98,12 @@ async function main() {
         try {
             await extensionPage.waitForSelector('::-p-xpath(//button[contains(@class, "ai2qbc9") and contains(text(), "I already have a wallet")])', { timeout: 20000});
             await extensionPage.$eval('::-p-xpath(//button[contains(@class, "ai2qbc9") and contains(text(), "I already have a wallet")])', button => {
-                button.click();  
+                button.evaluate(button => button.click());  
             });
             await delay(2000);
             
             importprivatekey = await extensionPage.waitForSelector('::-p-xpath(//button[3])', { timeout: 20000});
-            await importprivatekey.click();
+            await importprivatekey.evaluate(button => button.click());
           
             await delay(2000);
             name_input = await extensionPage.waitForSelector("::-p-xpath(//input[@name='name'])", { timeout: 20000});
@@ -113,7 +113,7 @@ async function main() {
             await private_key_input.type(PHANTOM_PRIVATE_KEY);
             await delay(2000);
             await extensionPage.$eval("::-p-xpath(//button[@data-testid='onboarding-form-submit-button'])", button => {
-                button.click();  
+                button.evaluate(button => button.click());  
             });
             await delay(2000);
             
@@ -124,21 +124,21 @@ async function main() {
             await confirm_password_input.type(PHANTOM_PASSWORD.toString());
             await delay(1000);
             checkbox_input = await extensionPage.waitForSelector("::-p-xpath(//input[@type='checkbox'])", { timeout: 20000});
-            await checkbox_input.click();
+            await checkbox_input.evaluate(button => button.click());
             await delay(1000);
             await extensionPage.$eval("::-p-xpath(//button[@data-testid='onboarding-form-submit-button'])", button => {
-                button.click();  
+                button.evaluate(button => button.click());  
             });
             await delay(4000);
             await extensionPage.$eval("::-p-xpath(//button[@data-testid='onboarding-form-submit-button'])", button => {
-                button.click();  
+                button.evaluate(button => button.click());  
             });
             console.log('Completed steps till extension page.');
             await delay(4000);
             try{
                 await mainPage.bringToFront();
             await mainPage.$eval("::-p-xpath(//button[contains(.,'Connect wallet')])", button => {
-                button.click();  
+                button.evaluate(button => button.click());  
             });
             await delay(3000);
 
@@ -159,7 +159,7 @@ async function main() {
                     const connectButton = await popupPage.waitForSelector('::-p-xpath(//button[contains(., "Connect")])', { timeout: 20000 });
                     if (connectButton) {
                         console.log('Connect button found.');
-                        await popupPage.evaluate(button => button.click(), connectButton); // Ensures click even if default `click()` fails
+                        await popupPage.evaluate(button => button.evaluate(button => button.click()), connectButton); // Ensures click even if default `click()` fails
                         console.log('Connect button clicked.');
                         await delay(5000);
                     } else {
@@ -191,7 +191,7 @@ async function main() {
                     const confirmButton = await confirmPopup.waitForSelector('::-p-xpath(//button[@data-testid="primary-button"])', { timeout: 20000 });
                     if (confirmButton) {
                         console.log('Confirm button found.');
-                        await confirmPopup.evaluate(button => button.click(), confirmButton); // Robust click
+                        await confirmPopup.evaluate(button => button.evaluate(button => button.click()), confirmButton); // Robust click
                         console.log('Confirm button clicked.');
                         await delay(5000);
                     } else {
@@ -216,7 +216,7 @@ async function main() {
     console.log('On main page.')
     console.log('current url:', mainPage.url());
     const orderButton = await mainPage.waitForSelector("::-p-xpath(//a[.='Orders'])", { timeout: 20000 });
-    await orderButton.click();
+    await orderButton.evaluate(button => button.evaluate(button => button.click()));
     await delay(6000);
    
     let isEndOfPage = false;
@@ -385,7 +385,7 @@ async function main() {
                 const deleteButton = await orderRow.$(`::-p-xpath(${deleteButtonXPath})`);
     
                 if (deleteButton) {
-                    await deleteButton.click();
+                    await deleteButton.evaluate(button => button.click());
                     await delay(2000);
                     console.log(`Delete button clicked for Order that is already activated: ${matchingOrder.tokenLink}  ${matchingOrder.tokenCondition}`);
                 } 
@@ -411,28 +411,28 @@ async function main() {
             await delay(3000);
             await newTab.waitForSelector('body');
             const buydipoption = await newTab.waitForSelector("::-p-xpath(//div[@class='l-col-auto'][2]//div[@class='c-checkbox__inner c-checkbox__inner--rounded'][1])", { timeout: 20000 });
-            await buydipoption.click();
+            await buydipoption.evaluate(button => button.evaluate(button => button.click()));
             await delay(2000);
             const buyamountinput = await newTab.waitForSelector("::-p-xpath(//div[@class='js-price-form']//input[@placeholder='Amount to buy in SOL'])", { timeout: 20000 });
             await buyamountinput.type(buydiporder.tokenAmount.toString());
             const Mcdropdown = await newTab.waitForSelector("::-p-xpath(//div[@data-tab-id='dip']//div[contains(@class,'c-btn c-btn--transparent c-drop-group__select__toggle js-dropdown__toggle')][1])", { timeout: 20000 });
-            await Mcdropdown.click();
+            await Mcdropdown.evaluate(button => button.evaluate(button => button.click()));
             await delay(2000);
             const Mcoptionselector = await newTab.waitForSelector("::-p-xpath(//div[@data-tab-id='dip']//div[@data-value='MC is'])", { timeout: 20000 });
-            await Mcoptionselector.click();
+            await Mcoptionselector.evaluate(button => button.click());
             await delay(2000);
             const mcoptioninput=await newTab.waitForSelector("::-p-xpath(//div[@data-tab-id='dip']//input[@data-type='usd'])", { timeout: 20000 });
             await mcoptioninput.type(buydiporder.tokenTargetPrice.toString());
             await delay(2000);
             const expirationhours = await newTab.waitForSelector("::-p-xpath(//div[@data-tab-id='dip']//input[@data-kind='expiration_type'])", { timeout: 20000 });
-            await expirationhours.click();
+            await expirationhours.evaluate(button => button.click());
             for (let i = 0; i < 3; i++) {
                 await expirationhours.press('Backspace');
             }
             await expirationhours.type("3");
             await delay(2000);
             const orderbutton=await newTab.waitForSelector("::-p-xpath(//div[@data-tab-id='dip']//button[contains(@class,'js-show__buy-order__submit')][1])", { timeout: 20000 });
-            await orderbutton.click();
+            await orderbutton.evaluate(button => button.click());
             try {
                 const toastmessage = await newTab.waitForSelector(
                     "::-p-xpath(//div[@class='iziToast-wrapper iziToast-wrapper-topCenter'])",
@@ -477,7 +477,7 @@ async function main() {
                         const deleteButton = await orderRow.$(`::-p-xpath(${deleteButtonXPath})`);
             
                         if (deleteButton) {
-                            await deleteButton.click();
+                            await deleteButton.evaluate(button => button.click());
                         } 
                         else {
                             console.error(`Delete button not found for Order ID: ${buydiporder.id}.`);
@@ -501,19 +501,19 @@ async function main() {
             await delay(3000);
             await newTab1.waitForSelector('body');
             const selltab = await newTab1.waitForSelector("::-p-xpath(//div[@class='p-show__widget__tabs']//div[@data-tab-id='sell'])", { timeout: 20000 });
-            await selltab.click();
+            await selltab.evaluate(button => button.click());
             await delay(2000);
             const takeprofitoption = await newTab1.waitForSelector("::-p-xpath(//div[@data-tab-id='sell']//label[@data-tab-id='auto_sell']/ancestor::div[contains(@class, 'l-col-auto')])", { timeout: 20000 });
-            await takeprofitoption.click();
+            await takeprofitoption.evaluate(button => button.click());
             await delay(2000);
             const takeprofittab = await newTab1.waitForSelector("::-p-xpath((//div[@class='c-show-sell__tabs js-tabs']//div[@data-tab-id='take_profit'])[1])", { timeout: 20000 });
-            await takeprofittab.click();
+            await takeprofittab.evaluate(button => button.click());
             await delay(2000);
             const takeprofitmcdropdown = await newTab1.waitForSelector("::-p-xpath(//div[@class='c-show-sell__tabs__inner js-tabs__content js-w-form__price-trigger is-selected']//div[@class='c-dropdown c-drop-group__select js-dropdown']//div[contains(@class,'c-btn')])", { timeout: 20000 });
-            await takeprofitmcdropdown.click();
+            await takeprofitmcdropdown.evaluate(button => button.click());
             await delay(2000);
             const Takeprofitmcoptionselector = await newTab1.waitForSelector("::-p-xpath(//div[@class='c-show-sell__tabs__inner js-tabs__content js-w-form__price-trigger is-selected']//div[@class='c-dropdown c-drop-group__select js-dropdown']//div[@data-value='MC is'])", { timeout: 20000 });
-            await Takeprofitmcoptionselector.click();
+            await Takeprofitmcoptionselector.evaluate(button => button.click());
             await delay(2000);
             const takeprofitmcoptioninput=await newTab1.waitForSelector("::-p-xpath((//div[@class='c-show-sell__tabs__inner js-tabs__content js-w-form__price-trigger is-selected']//input[contains(@class,'c-field__input js-w-form__price-trigger__field')])[2])", { timeout: 20000 });
             await takeprofitmcoptioninput.type(takeprofitorder.tokenTargetPrice.toString());
@@ -522,7 +522,7 @@ async function main() {
                 "::-p-xpath(//div[@class='c-show-sell__tabs__inner js-tabs__content js-w-form__price-trigger is-selected']//input[@class='c-field__input js-w-form__sell-amnt js-show__sell-order__input'])",
                 { timeout: 20000 }
             );
-            await sellamount.click();
+            await sellamount.evaluate(button => button.click());
             await delay(1000);
 
             for (let i = 0; i < 3; i++) {
@@ -531,14 +531,14 @@ async function main() {
             await sellamount.type(takeprofitorder.tokenAmount.replace('%', '').trim());
             await delay(2000);
             const takeprofitexpirationhours = await newTab1.waitForSelector("::-p-xpath((//div[@class='u-px-s u-pb-xs'])[1]//input)", { timeout: 20000 });
-            await takeprofitexpirationhours.click();
+            await takeprofitexpirationhours.evaluate(button => button.click());
             for (let i = 0; i < 3; i++) {
                 await takeprofitexpirationhours.press('Backspace');
             }
             await takeprofitexpirationhours.type("3");
             await delay(2000);
             const takeprofitorderbutton=await newTab1.waitForSelector("::-p-xpath((//button[contains(@class,'u-mt-s u-w-100 c-btn c-w-form__submit c-btn--purple js-show__sell-order__submit')])[1])", { timeout: 20000 });
-            await takeprofitorderbutton.click();
+            await takeprofitorderbutton.evaluate(button => button.click());
             try {
                 const toastmessage = await newTab1.waitForSelector(
                     "::-p-xpath(//div[@class='iziToast-wrapper iziToast-wrapper-topCenter'])",
@@ -585,7 +585,7 @@ async function main() {
                         const deleteButton = await orderRow.$(`::-p-xpath(${deleteButtonXPath})`);
             
                         if (deleteButton) {
-                            await deleteButton.click();
+                            await deleteButton.evaluate(button => button.click());
                             console.log(`Delete button clicked for Order ID: ${takeprofitorder.id}`);
                         } 
                         else {
@@ -611,16 +611,16 @@ async function main() {
             await delay(3000);
             await newTab2.waitForSelector('body');
             const selltabforstoploss = await newTab2.waitForSelector("::-p-xpath(//div[@class='p-show__widget__tabs']//div[@data-tab-id='sell'])", { timeout: 20000 });
-            await selltabforstoploss.click();
+            await selltabforstoploss.evaluate(button => button.click());
             await delay(2000);
             const autosellbtn = await newTab2.waitForSelector("::-p-xpath(//div[@data-tab-id='sell']//label[@data-tab-id='auto_sell']/ancestor::div[contains(@class, 'l-col-auto')])", { timeout: 20000 });
-            await autosellbtn.click();
+            await autosellbtn.evaluate(button => button.click());
             await delay(2000);
             const stoplossmcdropdown = await newTab2.waitForSelector("::-p-xpath((//div[@data-tab-id='stop_loss'])[2]//div[@class='c-dropdown c-drop-group__select js-dropdown']//div[contains(@class,'c-btn')])", { timeout: 20000 });
-            await stoplossmcdropdown.click();
+            await stoplossmcdropdown.evaluate(button => button.click());
             await delay(2000);
             const stoplossmcoptionselector = await newTab2.waitForSelector("::-p-xpath((//div[@data-tab-id='stop_loss'])[2]//div[@class='c-dropdown c-drop-group__select js-dropdown']//div[@data-value='MC is'])", { timeout: 20000 });
-            await stoplossmcoptionselector.click();
+            await stoplossmcoptionselector.evaluate(button => button.click());
             await delay(2000);
             const stoplossmcoptioninput=await newTab2.waitForSelector("::-p-xpath(((//div[@data-tab-id='stop_loss'])[2]//input[@data-line-id='stop_loss'])[2])", { timeout: 20000 });
             await stoplossmcoptioninput.type(stoplossorder.tokenTargetPrice.toString());
@@ -629,7 +629,7 @@ async function main() {
                 "::-p-xpath((//div[@data-tab-id='stop_loss'])[2]//input[@class='c-field__input js-w-form__sell-amnt js-show__sell-order__input'])",
                 { timeout: 20000 }
             );
-            await stoplossSellamount.click();
+            await stoplossSellamount.evaluate(button => button.click());
             await delay(1000);
             for (let i = 0; i < 3; i++) {
                 await stoplossSellamount.press('Backspace');
@@ -637,14 +637,14 @@ async function main() {
             await stoplossSellamount.type(stoplossorder.tokenAmount.replace('%', '').trim());
             await delay(2000);
             const stoplossexpirationhours = await newTab2.waitForSelector("::-p-xpath((//div[@class='u-px-s u-pb-xs'])[1]//input)", { timeout: 20000 });
-            await stoplossexpirationhours.click();
+            await stoplossexpirationhours.evaluate(button => button.click());
             for (let i = 0; i < 3; i++) {
                 await stoplossexpirationhours.press('Backspace');
             }
             await stoplossexpirationhours.type("3");
             await delay(2000);
             const stoplossorderbutton=await newTab2.waitForSelector("::-p-xpath((//button[contains(@class,'u-mt-s u-w-100 c-btn c-w-form__submit c-btn--purple js-show__sell-order__submit')])[1])", { timeout: 20000 });
-            await stoplossorderbutton.click();
+            await stoplossorderbutton.evaluate(button => button.click());
             try {
                 const toastmessage = await newTab2.waitForSelector(
                     "::-p-xpath(//div[@class='iziToast-wrapper iziToast-wrapper-topCenter'])",
@@ -692,7 +692,7 @@ async function main() {
                         const deleteButton = await orderRow.$(`::-p-xpath(${deleteButtonXPath})`);
             
                         if (deleteButton) {
-                            await deleteButton.click();
+                            await deleteButton.evaluate(button => button.click());
                             console.log(`Delete button clicked for Order ID: ${stoplossorder.id}`);
                         } 
                         else {
