@@ -229,10 +229,12 @@ async function main() {
     await mainPage.bringToFront();
     console.log('On main page.')
     console.log('current url:', mainPage.url());
+    await delay(2000);
     const orderButton = await mainPage.waitForSelector("::-p-xpath(//a[.='Orders'])", { timeout: 20000 });
-    await orderButton.evaluate(button => button.evaluate(button => button.click()));
+    await orderButton.click();
     await delay(6000);
-   
+    console.log('Clicked on Orders tab.');
+    console.log('current url:', mainPage.url());
     let isEndOfPage = false;
     let previousHeight = 0; 
     let retryCount = 0;     
@@ -754,6 +756,7 @@ async function cleanUpBrowser() {
         console.error('Error during browser cleanup:', err.message);
     }
 }
+main();
 // async function directoryCleanup(directoryPath) {
 //     try {
 //         if (!fs.existsSync(directoryPath)) {
@@ -789,7 +792,7 @@ async function cleanUpBrowser() {
 //     calculateSize(directoryPath);
 //     return totalSize; 
 // }
-main();
+
 
 
 
