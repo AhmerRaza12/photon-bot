@@ -12,8 +12,8 @@ puppeteer.use(StealthPlugin());
 const CAPTCHA_API_KEY = process.env.CAPTCHA_API_KEY;
 const PHANTOM_PRIVATE_KEY=process.env.PHANTOM_PRIVATE_KEY;
 const PHANTOM_PASSWORD= process.env.PHANTOM_PASSWORD;
-// const phantom_extension_path = '/opt/google/chrome/extensions/phantom-extension';
-const phantom_extension_path='C:/Users/ahmer/AppData/Local/Google/Chrome/User Data/Default/Extensions/bfnaelmomeimhlpmgjnjophhpkkoljpa/24.27.1_0';
+const phantom_extension_path = '/opt/google/chrome/extensions/phantom-extension';
+// const phantom_extension_path='C:/Users/ahmer/AppData/Local/Google/Chrome/User Data/Default/Extensions/bfnaelmomeimhlpmgjnjophhpkkoljpa/24.27.1_0';
 const chrome_user_data_dir = './user-directory';
 
 const solver = new Solver(CAPTCHA_API_KEY);
