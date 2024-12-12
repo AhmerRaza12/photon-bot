@@ -52,13 +52,14 @@ async function main() {
     }
     const browser = await puppeteer.launch({
         headless: false,
-        defaultViewport: null,
+        defaultViewport: { width: 1920, height: 1080 },
         args: [
              `--disable-extensions-except=${phantom_extension_path}`,
             `--load-extension=${phantom_extension_path}`,
             '--start-maximized',
             `--user-agent=${userAgent}`,
             '--no-sandbox',
+            '--disable-setuid-sandbox',
             // '--auto-open-devtools-for-tabs',
         ],
         userDataDir: chrome_user_data_dir
@@ -428,7 +429,7 @@ async function main() {
             await newTab.waitForSelector('body');
             await newTab.bringToFront();
             const buydipoption = await newTab.waitForSelector("::-p-xpath(//div[@class='l-col-auto'][2]//div[@class='c-checkbox__inner c-checkbox__inner--rounded'][1])", { timeout: 20000 });
-            await buydipoption.evaluate(button => button.evaluate(button => button.click()));
+            await buydipoption.click();
             await delay(2000);
             const buyamountinput = await newTab.waitForSelector("::-p-xpath(//div[@class='js-price-form']//input[@placeholder='Amount to buy in SOL'])", { timeout: 20000 });
             await buyamountinput.type(buydiporder.tokenAmount.toString());
