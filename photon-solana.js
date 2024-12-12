@@ -427,8 +427,14 @@ async function main() {
             await newTab.goto(buydiporder.tokenLink, { waitUntil: 'load' });
             await delay(3000);
             await newTab.waitForSelector('body');
-            await newTab.bringToFront();
-            const buydipoption = await newTab.waitForSelector("::-p-xpath(//div[@class='l-col-auto'][2]//div[@class='c-checkbox__inner c-checkbox__inner--rounded'][1])", { timeout: 20000 });
+            // await newTab.bringToFront();
+            const pageContent = await newTab.content();
+            console.log(pageContent);
+            await newTab.screenshot({ path: 'debug-page.png', fullPage: true });
+            const buydipoption = await newTab.waitForSelector(
+                "::-p-xpath(//div[@class='l-col-auto'][2]//div[@class='c-checkbox__inner c-checkbox__inner--rounded'][1])", 
+                { visible: true, timeout: 15000 }
+            );
             await buydipoption.click();
             await delay(2000);
             const buyamountinput = await newTab.waitForSelector("::-p-xpath(//div[@class='js-price-form']//input[@placeholder='Amount to buy in SOL'])", { timeout: 20000 });
