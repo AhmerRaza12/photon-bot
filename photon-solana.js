@@ -89,8 +89,8 @@ async function main() {
     await delay(4000); 
 
     
-    const page_content = await mainPage.content();
-    console.log('Page content:', page_content); 
+    // const page_content = await mainPage.content();
+    // console.log('Page content:', page_content); 
 
     const allPages = await browser.pages();
     let extensionPage = allPages.find(page => page.url().includes('chrome-extension://'));
@@ -426,6 +426,7 @@ async function main() {
             await newTab.goto(buydiporder.tokenLink, { waitUntil: 'load' });
             await delay(3000);
             await newTab.waitForSelector('body');
+            await newTab.bringToFront();
             const buydipoption = await newTab.waitForSelector("::-p-xpath(//div[@class='l-col-auto'][2]//div[@class='c-checkbox__inner c-checkbox__inner--rounded'][1])", { timeout: 20000 });
             await buydipoption.evaluate(button => button.evaluate(button => button.click()));
             await delay(2000);
